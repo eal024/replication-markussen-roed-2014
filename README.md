@@ -28,8 +28,8 @@ Formålet er å forstå IV-strategien i detalj ved å gjenskape analysen med sim
 
 ## Status
 
-Under oppstart.
+Simulert datasett som replikerer tabell 1 (deskriptiv statistikk) er ferdig. Neste steg er instrumentkonstruksjon (leave-one-out) og IV-estimering.
 
 ## Kobling
 
-Detaljerte lesenotater fra originalen finnes i research-project: `articles/article2-vlt/literature/split_Markussen_Roed_2014/notes.md`
+Detaljerte lesenotater fra originalen finnes i `notes/markussen_roed_2014/notes.md` (kopiert fra research-project).
