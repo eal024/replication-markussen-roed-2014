@@ -39,6 +39,15 @@ Ved å inkludere PDI-strenghet som femte «behandling» kobler studien seg til d
 - **VR3 (ordinær utdanning):** Positiv post-TDI (+11 ppt sysselsetting), men stor lock-in-kostnad over 5 år.
 - **VR4 (kurs):** Kontraproduktiv. −12 ppt sysselsetting.
 
+### VR2 og seleksjon: er tiltaket skadelig, eller er det complier-gruppen?
+
+IV-estimatet sier VR2 er kontraproduktivt (−19 ppt sysselsetting). Men VR2-gruppen har dårligst utgangspunkt: lavest utdanning, høyest innvandrerandel, lavest andel med tidligere jobb/sykepenger (58.7%). To innvendinger:
+
+1. **LATE ≠ ATE.** IV estimerer effekten for compliers — de som marginalt skyves inn i VR2 av lokale praksisforskjeller. Disse kan være en helt annen gruppe enn de som alltid havner i VR2.
+2. **Kontrafaktualet er uklart.** «Uten VR2» kan bety VR1, annet tiltak, eller ingenting. Hvis kontor med høy VR2-andel gjør det *istedenfor* VR1, er det kanskje fraværet av VR1 som driver det negative resultatet — ikke VR2 i seg selv.
+
+Begrensning ved flertiltaks-IV: vanskelig å skille om VR2 er aktivt skadelig (innlåsing i skjermet sektor) fra at det fortrenger bedre alternativer.
+
 ### Interessant funn: strengere PDI-praksis
 
 Strengere inngangsvilkår til PDI reduserer PDI-innstrømming kraftig, men har liten effekt på retur til arbeid. Folk ender ikke i jobb — de blir hengende i TDI eller havner på andre ytelser. Gatekeeping alene flytter folk mellom ordninger uten å løse sysselsettingsproblemet. Innstramming uten effektive tiltak (som VR1) gir lite. Relevant for den norske AAP-debatten.

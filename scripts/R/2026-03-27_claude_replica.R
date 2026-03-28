@@ -28,30 +28,83 @@ fn_cont <- function(n, m, sd, lo, hi) {
   pmin(pmax(round(rnorm(n, m, sd)), lo), hi)
 }
 
-# 4. Datasimulering — én gruppe av gangen ---------------------------
+fn_lognorm <- function(n, m, sd) {
+  # Log-normal parametrisert med ønsket mean og sd
+  # mu_ln og sigma_ln er parametrene til den underliggende normalfordelingen
+  sigma_ln <- sqrt(log(1 + (sd / m)^2))
+  mu_ln    <- log(m) - sigma_ln^2 / 2
+  round(rlnorm(n, mu_ln, sigma_ln))
+}
 
-# Tar parametere fra tabell 1 som navngitt liste.
-# Returnerer tibble med simulerte individdata.
+# 4. Datasimulering — korrelert struktur ----------------------------
+
+# Koeffisienter for log-lineær inntektsmodell (felles på tvers av grupper)
+b_age       <-  0.01   # eldre -> høyere inntekt
+b_school    <-  0.05   # mer utdanning -> høyere inntekt
+b_female    <- -0.10   # kvinner tjener litt mindre
+b_immigrant <- -0.15   # innvandrere tjener mindre
+sigma_earn  <-  0.40   # idiosynkratisk variasjon på log-skala
+
 sim_group <- function(category, n, female, age, school, immigrant,
                       earn_prior, labor_earn, transfer_prior,
                       duration, obs_end, multi_vr = NA,
                       earn_5yr, transfer_5yr, empl_post, pdi_post) {
+
+  # 1. Eksogene demografiske variabler
+  d_female    <- fn_bin(n, female)
+  d_age       <- fn_cont(n, age, 8, 18, 55)
+  d_immigrant <- fn_bin(n, immigrant)
+
+  # 2. Utdanning betinget på innvandring (-1.5 år for innvandrere)
+  #    Justerer base opp slik at gruppegjennomsnitt holdes
+  school_base <- school + immigrant * 1.5
+  school_ind  <- school_base - 1.5 * d_immigrant
+  d_year_school <- pmin(pmax(round(rnorm(n, school_ind, 2)), 7), 20)
+
+  # 3. earn_prior — log-lineær modell med kalibrert intercept
+  xb <- b_age * d_age + b_school * d_year_school +
+    b_female * d_female + b_immigrant * d_immigrant
+  intercept <- log(earn_prior) - mean(xb) - sigma_earn^2 / 2
+  d_earn_prior <- round(exp(intercept + xb + rnorm(n, 0, sigma_earn)))
+
+  # 4. Dekomponering: arbeidsinntekt og overføringer
+  #    Labor-andel varierer med alder (eldre -> mer overføringer) og utdanning
+  target_labor_share <- labor_earn / earn_prior
+  labor_logit <- qlogis(target_labor_share) +
+    -0.02 * (d_age - age) +
+    0.01 * (d_year_school - school) +
+    rnorm(n, 0, 0.3)
+  d_labor_share    <- plogis(labor_logit)
+  d_labor_earn     <- round(d_earn_prior * d_labor_share)
+  d_transfer_prior <- d_earn_prior - d_labor_earn
+
+  # 5. Øvrige kovariater
+  d_duration  <- fn_cont(n, duration, 15, 1, 120)
+  d_obs_end   <- fn_bin(n, obs_end)
+  d_multi_vr  <- if (!is.na(multi_vr)) fn_bin(n, multi_vr) else NA_real_
+
+  # 6. Utfallsvariabler (foreløpig uavhengige — DGP bygges senere)
+  d_earn_5yr     <- fn_lognorm(n, earn_5yr, 100000)
+  d_transfer_5yr <- fn_lognorm(n, transfer_5yr, 80000)
+  d_empl_post    <- fn_bin(n, empl_post)
+  d_pdi_post     <- fn_bin(n, pdi_post)
+
   tibble(
     category         = category,
-    female           = fn_bin(n, female),
-    age              = fn_cont(n, age, 8, 18, 55),
-    year_school      = fn_cont(n, school, 2, 7, 20),
-    immigrant        = fn_bin(n, immigrant),
-    earn_prior       = fn_cont(n, earn_prior, 150000, 0, 1500000),
-    labor_earn_prior = fn_cont(n, labor_earn, 130000, 0, 1500000),
-    transfer_prior   = fn_cont(n, transfer_prior, 40000, 0, 500000),
-    duration_months  = fn_cont(n, duration, 15, 1, 120),
-    observed_end     = fn_bin(n, obs_end),
-    multi_vr         = if (!is.na(multi_vr)) fn_bin(n, multi_vr) else NA_real_,
-    earn_5yr         = fn_cont(n, earn_5yr, 100000, 0, 1000000),
-    transfer_5yr     = fn_cont(n, transfer_5yr, 80000, 0, 500000),
-    empl_post        = fn_bin(n, empl_post),  # sysselsatt etter TDI
-    pdi_post         = fn_bin(n, pdi_post)    # overgang til varig uføretrygd
+    female           = d_female,
+    age              = d_age,
+    year_school      = d_year_school,
+    immigrant        = d_immigrant,
+    earn_prior       = d_earn_prior,
+    labor_earn_prior = d_labor_earn,
+    transfer_prior   = d_transfer_prior,
+    duration_months  = d_duration,
+    observed_end     = d_obs_end,
+    multi_vr         = d_multi_vr,
+    earn_5yr         = d_earn_5yr,
+    transfer_5yr     = d_transfer_5yr,
+    empl_post        = d_empl_post,
+    pdi_post         = d_pdi_post
   )
 }
 
@@ -116,3 +169,19 @@ df_sim |>
     ) |>
   pivot_longer(-category) |>
   pivot_wider(names_from = category, values_from = value)
+
+# 8. Tetthetplot: earn_prior per gruppe --------------------------------
+
+p_earn_prior <- df_sim |>
+  ggplot(aes(x = earn_prior / 1000, fill = category)) +
+  geom_density(alpha = 0.4) +
+  labs(
+    title = "Tetthetsfunksjon: total inntekt året før TDI-inntreden",
+    subtitle = "Log-normalfordeling, simulerte data",
+    x = "Inntekt (1 000 NOK, 2013-priser)",
+    y = "Tetthet",
+    fill = "Gruppe"
+  ) +
+  theme_minimal()
+
+ggsave("output/earn_prior_density.pdf", p_earn_prior, width = 8, height = 5)

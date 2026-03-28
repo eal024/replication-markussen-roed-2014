@@ -114,10 +114,31 @@ set.seed(2014)
 
 list_sample <- list(l_non_treated, l_vr1, l_vr2, l_vr3, l_vr4)
 
+distinct(df_sim, category)
+
 df_sim <- list_sample |>
   map(\(params) do.call(data_create, params)) |>
   bind_rows() |>
-  mutate(id = row_number())
+  mutate(
+    id = row_number(),
+    category = factor( category, levels = c("non-treated", "VR1", "VR2", "VR3", "VR4"))
+    ) 
 
 
 # tabell 1
+ df_stat <- df_sim |>                                                                     
+    group_by(category) |>
+    summarise(                                                                             
+      antall = n(),
+      across(c(female:pdi_post), \(x) mean(x, na.rm = TRUE))
+    )     
+
+df_stat |> 
+    pivot_longer(-category) |> 
+    pivot_wider( names_from = category, values_from = value)
+
+
+
+# Estimation strategy
+# klargjøre data for estimering
+
