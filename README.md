@@ -18,19 +18,28 @@ Formålet er å forstå IV-strategien i detalj ved å gjenskape analysen med sim
 
 ```
 ./
-├── README.md          # Dette dokumentet
-├── CLAUDE.md          # Arbeidsregler for AI-assistenten
-├── scripts/           # R-skript for replikasjon
-├── data/              # Simulerte/syntetiske data
-├── output/            # Tabeller og figurer
-└── notes/             # Notater om metode og valg underveis
+├── CLAUDE.md                          # Arbeidsregler for AI-assistenten
+├── README.md                          # Dette dokumentet
+├── econ5106_L08_late (3).pdf          # Forelesningsnotater om IV/LATE
+├── scripts/R/
+│   ├── 01_simuler_data.R             # Datagenerering (tabell 1, kovariater, utfall)
+│   └── 02_iv_instrument.R            # Kontor, strategi, leave-one-out instrument
+├── data/                              # Simulerte datasett
+├── output/                            # Figurer og tabeller
+├── notes/
+│   ├── markussen_roed_2014/           # Artikkelnotater og full tekst
+│   ├── data_dictionary.md             # Dokumentasjon av simulert datasett
+│   └── oppskrift_replikasjon_data.md  # Generell oppskrift for replikasjon
+└── log/                               # Arbeidslogg og TODO
 ```
 
 ## Status
 
-Simulert datasett som replikerer tabell 1 (deskriptiv statistikk) er ferdig. Neste steg er instrumentkonstruksjon (leave-one-out) og IV-estimering.
+Simulert datasett (N=345 107) med korrelert korrelasjonsstruktur er ferdig. IV-instrumentkonstruksjon er påbegynt: 4 kontor med ulik behandlingsstrategi og leave-one-out instrument. Neste steg er å la utfall avhenge av behandling med kjent β, og estimere OLS vs. IV.
 
 ## Dokumentasjon
 
-- **Datadokumentasjon:** `notes/data_dictionary.md` — fordelingsvalg, variabelbeskrivelser og kjente begrensninger for det simulerte datasettet
-- **Lesenotater:** `notes/markussen_roed_2014/notes.md` — detaljerte notater fra originalen (kopiert fra research-project)
+- **Datadokumentasjon:** `notes/data_dictionary.md`
+- **Lesenotater:** `notes/markussen_roed_2014/notes.md`
+- **Replikasjonsoppskrift:** `notes/oppskrift_replikasjon_data.md`
+- **IV/LATE-teori:** `econ5106_L08_late (3).pdf`

@@ -66,8 +66,21 @@ Trukket med `rnorm()`, klippet til [min, max]. Alder og utdanning er rimelig sym
 | `transfer_prior` | Overføringer året før TDI (NOK 2013) | `earn_prior - labor_earn_prior` (foreløpig) |
 
 **Merknad om `transfer_prior`:** Variabelen inkluderer sykepenger (100% kompensasjon, inntil 12 mnd) og eventuelt AAP/TDI (66% av tidligere inntekt). Størrelsen er dermed i stor grad mekanisk bestemt av tidligere arbeidsinntekt og lengden på sykepengeperioden før TDI-inntreden. Nåværende simulering bruker en logistisk andelsmodell — kan erstattes med en regelbasert konstruksjon senere.
+| `labor_earn_post` | Arbeidsinntekt første kalenderår etter TDI-exit (NOK 2013). Utfallsvariabel | Betinget log-normal (se under) |
+| `transfer_post` | Overføringer første kalenderår etter TDI-exit (NOK 2013). Utfallsvariabel | Betinget log-normal (se under) |
 | `earn_5yr` | Årsinntekt 5 år etter TDI-exit (NOK 2013). Utfallsvariabel | Log-normal, uavhengig (foreløpig) |
 | `transfer_5yr` | Overføringer 5 år etter TDI-exit (NOK 2013). Utfallsvariabel | Log-normal, uavhengig (foreløpig) |
+
+---
+
+## Post-TDI inntektsvariabler (ikke i tabell 1)
+
+`labor_earn_post` og `transfer_post` er utfallsvariabler fra tabell 3 (kolonne II og IV), men gjennomsnitt per gruppe rapporteres ikke i tabell 1. Variablene er konstruert med betinget fordeling:
+
+- **`labor_earn_post`**: Betinget på `empl_post`. Sysselsatte (empl_post=1) trekkes fra log-normal med median ~220k NOK (over 160k-terskelen per definisjon). Ikke-sysselsatte trekkes fra log-normal med median ~40k.
+- **`transfer_post`**: Betinget på `pdi_post` og `empl_post`. PDI-mottakere får høye overføringer (~180k). Sysselsatte uten PDI får lave overføringer (~20k). Øvrige får moderate overføringer (~90k).
+
+**Merknad:** Parametrene er rimelige antakelser, ikke hentet fra artikkelen. Gjennomsnittene kan ikke verifiseres mot tabell 1.
 
 ---
 
