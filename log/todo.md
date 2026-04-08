@@ -14,12 +14,17 @@
 - [x] Opprettet 4 kontor med ulik behandlingsstrategi og leave-one-out instrument
 - [x] Oppdatert kode til å følge `~/.claude/r_kodestil.md` (4 mellomrom, here::here, kommentarstil)
 
-## Neste økt
+## Neste økt (prioritert rekkefølge)
 
+- [ ] Tidsdummyer (inngangsmåned) — trivielt, nødvendig
+- [ ] Dummy-koding av individvariabler (alder, utdanning, inntekt, trygd) — ikke-parametrisk som i artikkelen
 - [ ] Sann behandlingseffekt (β): la utfall avhenge av behandling med kjent effekt
 - [ ] OLS-estimering (biased) vs. IV-estimering — sjekk at IV gjenfinner β
+- [ ] Varighetsmodell (lineær diskret) for residualbasert instrument (ligning 2) — person-måned-format
+- [ ] Konstruer residualbasert instrument (ligning 3–5) med leave-one-out
+- [ ] Reduced form-estimering (tabell 3)
 - [ ] Utvide fra binær (VR/ikke) til flerverdi (VR1–VR4)
 - [ ] Utvide fra 4 til 152 kontor
-- [ ] Varighetsmodell (lineær diskret) for residualbasert instrument (ligning 2)
-- [ ] Reduced form-estimering (tabell 3)
+- [ ] Regional ledighetsrate som proxy for konjunkturkontroller
+- [ ] Lokale sosioøkonomiske variabler (robusthetssjekk)
 - [ ] Vurdere oppskrift_replikasjon_data.md som Claude Code skill
