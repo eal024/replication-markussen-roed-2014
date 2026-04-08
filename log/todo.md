@@ -14,15 +14,21 @@
 - [x] Opprettet 4 kontor med ulik behandlingsstrategi og leave-one-out instrument
 - [x] Oppdatert kode til å følge `~/.claude/r_kodestil.md` (4 mellomrom, here::here, kommentarstil)
 
-## Neste økt (prioritert rekkefølge)
+## Neste økt (2026-04-09, prioritert rekkefølge)
 
+### Datakonstruksjon (i `01_simuler_data.R` eller ny fil)
 - [ ] Tidsdummyer (inngangsmåned) — trivielt, nødvendig
 - [ ] Dummy-koding av individvariabler (alder, utdanning, inntekt, trygd) — ikke-parametrisk som i artikkelen
-- [ ] Sann behandlingseffekt (β): la utfall avhenge av behandling med kjent effekt
-- [ ] OLS-estimering (biased) vs. IV-estimering — sjekk at IV gjenfinner β
-- [ ] Varighetsmodell (lineær diskret) for residualbasert instrument (ligning 2) — person-måned-format
-- [ ] Konstruer residualbasert instrument (ligning 3–5) med leave-one-out
+- [ ] Ekspander til person-måned-format (se notat for datastruktur)
+- [ ] Binær hendelsesindikator per behandling (P_vr1, ..., P_pdi)
+
+### Modellering (nye filer, starter med innlesning av data)
+- [ ] `03_varighetsmodell.R`: Estimer ligning 2 med OLS, hent residualer, summer per person
+- [ ] Konstruer leave-one-out-instrument fra residualene (ligning 3–5)
+- [ ] `04_iv_estimering.R`: OLS vs. IV — sjekk at IV gjenfinner sann β
 - [ ] Reduced form-estimering (tabell 3)
+
+### Senere
 - [ ] Utvide fra binær (VR/ikke) til flerverdi (VR1–VR4)
 - [ ] Utvide fra 4 til 152 kontor
 - [ ] Regional ledighetsrate som proxy for konjunkturkontroller
