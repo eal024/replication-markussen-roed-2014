@@ -66,10 +66,11 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 
 ## Tilstand nå
 
-- **Ferdig:** Datasimulering (tabell 1), CLAUDE.md, oppskrift, 4 kontor med leave-one-out instrument
-- **Pågår:** Gjennomgang av empirisk strategi (ligning 2–5). Forståelse av varighetsmodell og instrumentkonstruksjon er på plass.
-- **Neste:** Ekspander til person-måned-data, estimer ligning 2 (OLS), konstruer leave-one-out-instrument, kjør OLS vs. IV
+- **Ferdig:** Datasimulering (tabell 1), CLAUDE.md, oppskrift, person-måned-data, ligning 2 estimert, leave-one-out-instrument (Z_vr1) verifisert, VR1+VR2 med kontorkultur
+- **Pågår:** Utvide til alle 5 behandlinger (VR1–VR4, PDI) og replikere full tabell 2
+- **Neste:** Sann behandlingseffekt (β), OLS vs. IV, reduced form
 - **Datagenerering:** `scripts/R/01_simuler_data.R`
 - **IV-instrument:** `scripts/R/02_iv_instrument.R`
+- **Hazard/instrument-utforsking:** `scripts/R/2026-04-09_replikasjon_hazard_event_data.R`
 
 *Oppdateres ved vesentlige skift.*

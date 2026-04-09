@@ -14,23 +14,31 @@
 - [x] Opprettet 4 kontor med ulik behandlingsstrategi og leave-one-out instrument
 - [x] Oppdatert kode til å følge `~/.claude/r_kodestil.md` (4 mellomrom, here::here, kommentarstil)
 
-## Neste økt (2026-04-09, prioritert rekkefølge)
+- [x] Gjennomgang av empirisk strategi: ligning 2–5, varighetsmodell, instrumentkonstruksjon
+- [x] Person-måned-data med right-censoring og kontorkultur (z1, z2)
+- [x] Estimert ligning 2 (LPM), residualer, leave-one-out-instrument (Z_vr1)
+- [x] Verifisert at Z_vr1 predikerer VR1-overgang (tabell 2-replikasjon, signifikant)
+- [x] Utvidet til to behandlinger (VR1, VR2) med kontorspesifikk tildelingsandel
 
-### Datakonstruksjon (i `01_simuler_data.R` eller ny fil)
-- [ ] Tidsdummyer (inngangsmåned) — trivielt, nødvendig
-- [ ] Dummy-koding av individvariabler (alder, utdanning, inntekt, trygd) — ikke-parametrisk som i artikkelen
-- [ ] Ekspander til person-måned-format (se notat for datastruktur)
-- [ ] Binær hendelsesindikator per behandling (P_vr1, ..., P_pdi)
+## Neste økt (prioritert rekkefølge)
 
-### Modellering (nye filer, starter med innlesning av data)
-- [ ] `03_varighetsmodell.R`: Estimer ligning 2 med OLS, hent residualer, summer per person
-- [ ] Konstruer leave-one-out-instrument fra residualene (ligning 3–5)
-- [ ] `04_iv_estimering.R`: OLS vs. IV — sjekk at IV gjenfinner sann β
+### Utvide hazard-simuleringen (`2026-04-09_replikasjon_hazard_event_data.R`)
+- [ ] Legg til VR3, VR4 og PDI (z3, z4, z_pdi i office_culture)
+- [ ] Estimer ligning 2 for alle 5 behandlinger → 5 sett residualer
+- [ ] Konstruer leave-one-out-instrument for alle 5 (φ_VR1, ..., φ_PDI)
+- [ ] Replikér full tabell 2 (5×5-matrise med krysseffekter)
+
+### IV-estimering
+- [ ] Legg inn sann behandlingseffekt (β) i utfallsligningen
+- [ ] OLS vs. IV — sjekk at IV gjenfinner sann β
 - [ ] Reduced form-estimering (tabell 3)
 
-### Senere
-- [ ] Utvide fra binær (VR/ikke) til flerverdi (VR1–VR4)
-- [ ] Utvide fra 4 til 152 kontor
+### Forbedre datasimulering
+- [ ] Tidsdummyer (inngangsmåned)
+- [ ] Dummy-koding av individvariabler — ikke-parametrisk som i artikkelen
+- [ ] Utvide fra 4 til flere kontor
 - [ ] Regional ledighetsrate som proxy for konjunkturkontroller
+
+### Senere
 - [ ] Lokale sosioøkonomiske variabler (robusthetssjekk)
 - [ ] Vurdere oppskrift_replikasjon_data.md som Claude Code skill

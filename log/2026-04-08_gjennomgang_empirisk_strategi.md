@@ -123,7 +123,51 @@ For klient nr. 48:
 
 Hvert individ får sitt eget instrument, men forskjellene er minimale (1 av ~100 klienter skiftes ut). Instrumentet fanger kontorets systematiske praksis, men er uavhengig av personen det skal forklare.
 
-### Referanse: Jackknife IV
+**I R — ligning 5 i én mutate:**
+
+```r
+df_resid <- df_resid |>
+    group_by(office_id) |>
+    mutate(
+        n_office   = n(),
+        sum_office = sum(u_sum),
+        Z_vr1 = (sum_office - u_sum) / (n_office - 1)  # alle andres gjennomsnitt
+    ) |>
+    ungroup()
+```
+
+- `sum_office` = summen av alle residualsummer på kontoret
+- `sum_office - u_sum` = fjern person i sin egen residualsum
+- Del på `n_office - 1` = gjennomsnitt av alle *andre*
+
+### Viktig: rik x er nødvendig for identifikasjon (s. 18)
+
+Instrumentet Z er kun eksogent **betinget på x**. Hvis kontor med høy VR1-tilbøyelighet også systematisk har klienter med dårligere jobbmuligheter — *etter* at x er kontrollert for — bryter identifikasjonen sammen. Altså: folk sorterer seg geografisk (bosted → kontor), og den sorteringen kan korrelere med utfall. En rik x som fanger opp denne bostedssorteringen er det som gjør instrumentet troverdig.
+
+Derfor bruker artikkelen dummyer (ikke-parametrisk) for alder, utdanning, inntekt og trygd, pluss lokale sosioøkonomiske variabler og konjunkturkontroller. Jo mer x fanger opp, jo mer troverdig er antakelsen om at tilordning til kontor er «som tilfeldig» betinget på x.
+
+### Seksjon 4: Predikerer instrumentet faktisk behandling? (tabell 2)
+
+Seksjon 4 er i praksis **relevanstesten** for instrumentet — viser at φ faktisk predikerer behandling. Svarer på: «har kontorpraksis reell betydning for hvem som får hva?»
+
+**To ting testes:**
+
+1. **Diagonalen i tabell 2:** φ_VR1 predikerer VR1-overgang, φ_VR2 predikerer VR2, osv. Alle diagonalelementer er sterkt signifikante (***). Et kontor med høy VR1-tilbøyelighet sender faktisk flere til VR1 — instrumentet «virker».
+
+2. **Andel forklart varians (nederst i tabellen):** Hvor mye av variasjonen i predikerte overgangssannsynligheter som forklares av φ alene:
+   - VR1: 12.5 %
+   - VR2: 29.6 %
+   - VR3: 5.0 % (svakest)
+   - VR4: 48.8 % (sterkest)
+   - PDI: 5.5 %
+
+   Individkjennetegn (x, d) forklarer mest, men kontorpraksis er langt fra ubetydelig.
+
+**Interessant funn:** Høy PDI-tilbøyelighet øker overgang til *alle* VR-programmer. Tolkning: kontor med høy PDI-intensitet har generelt raskere saksbehandling → sender folk raskere videre til arbeidskontor også.
+
+**For datasimuleringen:** Tabell 2 gir konkrete koeffisienter for hvor sterkt kontorstrategi påvirker behandlingsplassering. Disse brukes til å kalibrere den simulerte sammenhengen mellom φ og faktisk behandling.
+
+### Referanse: Jackknife IV[^1]
 
 Angrist & Pischke kaller denne teknikken «jackknife IV». Standardtilnærming for å unngå at instrumentet forurenses av personen det skal forklare.
 
@@ -212,3 +256,7 @@ Angrist & Pischke kaller denne teknikken «jackknife IV». Standardtilnærming f
 3. Estimer ligning 2 med OLS i eget skript (`03_varighetsmodell.R`)
 4. Hent residualer, summer per person, konstruer leave-one-out-instrument
 5. Kjør OLS vs. IV — verifiser at IV gjenfinner sann β
+
+---
+
+[^1]: Angrist, J. D. & Pischke, J.-S. (2009). *Mostly Harmless Econometrics: An Empiricist's Companion.* Princeton University Press, kap. 4.6 (jackknife IV, leave-one-out). [Forlag](https://press.princeton.edu/books/paperback/9780691120355/mostly-harmless-econometrics)
