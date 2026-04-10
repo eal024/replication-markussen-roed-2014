@@ -249,13 +249,33 @@ Angrist & Pischke kaller denne teknikken «jackknife IV». Standardtilnærming f
 
 ---
 
-## Neste steg (neste økt, 2026-04-09)
+## Simulering av competing risks med geometrisk fordeling (økt 2026-04-09)
+
+Hendelsestidspunkt for VR1/VR2 simuleres med `rgeom(n, prob)` — antall *mislykkede forsøk* (måneder uten hendelse) før første suksess (overgang til behandling).
+
+Nøkkelen er at `prob` er en **vektor** — hver person har sin egen månedlige hazard:
+
+```r
+rgeom(10, head(df_person$h_vr1, 10))
+# Eks: c(45, 120, 8, 200, 3, ...)
+```
+
+Person med høy `h_vr1` (f.eks. 0.014 på kontor A med z1=0.012) får typisk lavt tall (rask overgang), mens person med lav `h_vr1` (f.eks. 0.004 på kontor B med z1=0.002) får typisk høyt tall (sen eller ingen overgang). Slik fanges kontorkulturens effekt på *hvem* som overføres.
+
+`rgeom` gir 0 ved suksess på første forsøk, men vi vil at måned 1 er tidligste hendelse, derav `+ 1L`.
+
+**Competing risks:** For hver person trekkes potensielle tidspunkt for *både* VR1 og VR2. Den tidligste hendelsen vinner (`pmin`), resten sensureres. Hvis ingen inntreffer innen 24 måneder → right-censored.
+
+Denne tilnærmingen er vesentlig riktigere enn å pre-tildele behandlingstype og deretter trekke tidspunkt — fordi residualene fra ligning 2 da fanger kontorets tilbøyelighet til å *sende folk til* en gitt behandling, ikke bare *når* en allerede tildelt behandling skjer.
+
+---
+
+## Neste steg
 
 1. Dummy-kod individvariabler + tidsdummyer i dataskriptet
-2. Ekspander til person-måned-format
-3. Estimer ligning 2 med OLS i eget skript (`03_varighetsmodell.R`)
-4. Hent residualer, summer per person, konstruer leave-one-out-instrument
-5. Kjør OLS vs. IV — verifiser at IV gjenfinner sann β
+2. Legg til VR3, VR4, PDI → full 5×5 tabell 2
+3. Sann behandlingseffekt (β), OLS vs. IV
+4. Reduced form (tabell 3)
 
 ---
 

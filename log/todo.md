@@ -19,19 +19,30 @@
 - [x] Estimert ligning 2 (LPM), residualer, leave-one-out-instrument (Z_vr1)
 - [x] Verifisert at Z_vr1 predikerer VR1-overgang (tabell 2-replikasjon, signifikant)
 - [x] Utvidet til to behandlinger (VR1, VR2) med kontorspesifikk tildelingsandel
+- [x] Utvidet hazard-simuleringen til alle 5 behandlinger (VR1–VR4, PDI) + tabell 2 (5×5)
+- [x] Lagt inn uobservert heterogenitet η og sann β i utfallsligningen
+- [x] Lagret persondatasett med D, Y, Z (`data/iv_replikasjon.rds`)
+- [x] Reduced form, naiv OLS og 2SLS — IV gjenfinner sann β for VR1, VR2, PDI
+- [x] Førstesteg-F (70–188) bekrefter instrumentets relevans
 
 ## Neste økt (prioritert rekkefølge)
 
-### Utvide hazard-simuleringen (`2026-04-09_replikasjon_hazard_event_data.R`)
-- [ ] Legg til VR3, VR4 og PDI (z3, z4, z_pdi i office_culture)
-- [ ] Estimer ligning 2 for alle 5 behandlinger → 5 sett residualer
-- [ ] Konstruer leave-one-out-instrument for alle 5 (φ_VR1, ..., φ_PDI)
-- [ ] Replikér full tabell 2 (5×5-matrise med krysseffekter)
+### Åpne diagnostikk-spørsmål (fra 2026-04-10-økten)
+- [ ] **PDI-spillover snur fortegn:** vår DGP gir negative Z_PDI → D_VR pga. competing risks. Heve `pdi_spillover` til 0.3–0.5, eller modellere kontorets saksbehandlingstempo separat fra behandlingsmiks
+- [ ] **VR3 dominerer competing risks:** vurder å redusere z_vr3-spennet eller innføre variabelt tidsbudsjett (ikke fast 24 mnd) for å dempe nullsum-logikken
+- [ ] **Inntektsnivå er ~2× artikkelen:** kalibrere α_y nedover hvis vi vil ha full tabell 1-match
 
-### IV-estimering
-- [ ] Legg inn sann behandlingseffekt (β) i utfallsligningen
-- [ ] OLS vs. IV — sjekk at IV gjenfinner sann β
-- [ ] Reduced form-estimering (tabell 3)
+### Forbedre simulering / robusthet
+- [ ] Forstå hvorfor IV gir svakest gjenfinning for VR4 (instrumentet har minst spenn der)
+- [ ] Øk antall kontor (10 → 50+) for å se hvordan det påvirker presisjonen
+- [ ] Legg til mer x-variasjon (alder, utdanning som dummyer, inntekt-trinn)
+- [ ] Klyngestandardfeil på kontornivå (`vcov = ~office_id`)
+- [ ] Berike datasettet med alder + innvandrer + tidligere inntekt for full tabell 1-sammenligning
+
+### Forbedre datasimulering
+- [ ] Tidsdummyer (inngangsmåned)
+- [ ] Dummy-koding av individvariabler — ikke-parametrisk som i artikkelen
+- [ ] Regional ledighetsrate som proxy for konjunkturkontroller
 
 ### Forbedre datasimulering
 - [ ] Tidsdummyer (inngangsmåned)

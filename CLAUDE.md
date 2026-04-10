@@ -66,11 +66,15 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 
 ## Tilstand nå
 
-- **Ferdig:** Datasimulering (tabell 1), CLAUDE.md, oppskrift, person-måned-data, ligning 2 estimert, leave-one-out-instrument (Z_vr1) verifisert, VR1+VR2 med kontorkultur
-- **Pågår:** Utvide til alle 5 behandlinger (VR1–VR4, PDI) og replikere full tabell 2
-- **Neste:** Sann behandlingseffekt (β), OLS vs. IV, reduced form
-- **Datagenerering:** `scripts/R/01_simuler_data.R`
-- **IV-instrument:** `scripts/R/02_iv_instrument.R`
-- **Hazard/instrument-utforsking:** `scripts/R/2026-04-09_replikasjon_hazard_event_data.R`
+- **Ferdig:** Tre-delt struktur for IV-replikasjon (DGP / diagnostikk / estimering), år-utdanning + venstre-trunkert Y, full tabell 2-relevansmatrise, IV gjenfinner sann β for VR1 og PDI
+- **Pågår:** To åpne diagnostikk-spørsmål — (1) PDI-spillover snur fortegn pga. competing risks (motsatt av artikkelen), (2) VR3 dominerer som største behandling og presser kryssvirkninger negativt
+- **Neste:** Heve PDI-spillover eller variabelt tidsbudsjett, klyngestandardfeil på kontornivå, berike datasettet for full tabell 1-sammenligning
+- **Tabell 1-data (eldre strøm):** `scripts/R/01_simuler_data.R`
+- **IV-instrument (eldre):** `scripts/R/02_iv_instrument.R`
+- **Hazard + tabell 2 (eldre eksperiment):** `scripts/R/2026-04-09_replikasjon_hazard_event_data.R`
+- **DGP + jackknife:** `scripts/R/2026-04-10_simuler_utfall_data.R` → `data/iv_replikasjon.rds`
+- **Diagnoseplott (frittstående):** `scripts/R/2026-04-10_diagnoseplott.R` → `output/diagnose_*.pdf`
+- **Estimering (deskriptiv → tabell 2 → OLS/RF/IV):** `scripts/R/2026-04-10_estimering_rf_iv.R`
+- **RStudio-prosjektfil:** `replication-markussen-roed-2014.Rproj`
 
 *Oppdateres ved vesentlige skift.*
