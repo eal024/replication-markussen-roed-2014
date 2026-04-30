@@ -17,6 +17,8 @@ $$y_{ki} = X_i'\gamma_k + P_i'\delta_k + \tau_k\,\varphi_{PDI,-i} + \eta_{ki}$$
 
 Strukturlikningen sier at utfallet *y* skapes av observerte kjennetegn (X), faktisk behandling (P), kontorets PDI-praksis (φ_PDI direkte regressor) og alt uobservert (η). δ er parameteren vi vil ha — kausal effekt av faktisk VR-behandling.
 
+**Tabell 1.** Notasjon i Markussen & Røed sammenstilt med konvensjonell IV-notasjon. Kolonne 1 viser hvordan variabelen er skrevet i artikkelen, kolonne 2 hva den representerer økonomisk, og kolonne 3 hva den ville hett i en standard IV-fremstilling (Y, X, D, Z). Tabellen er en oversettelsesnøkkel — ingen ny informasjon, men gjør det lettere å gå mellom artikkelen og lærebok-notasjonen.
+
 | M&R | Rolle | Konvensjonell IV-notasjon |
 |---|---|---|
 | y_ki | Utfall k for individ i | Y |
@@ -24,6 +26,8 @@ Strukturlikningen sier at utfallet *y* skapes av observerte kjennetegn (X), fakt
 | P_i = (P_1, P_2, P_3, P_4) | Faktisk VR-deltakelse, **endogen** | D |
 | φ_PDI,-i | Lokal PDI-strenghet, eksogen kontroll | (atypisk — brukes som regressor) |
 | η_ki | Alt uobservert | ε / u |
+
+**Hva endogeniteten består i.** Problemet sitter i P. Faktisk VR-deltakelse er korrelert med η fordi uobservert helse og motivasjon styrer både *hvem* som blir behandlet (seleksjonen) og *hvordan det siden går* (utfallet). Konkret: cov(P, η) ≠ 0, slik at OLS av y på P + X fanger både den kausale effekten δ og denne seleksjonskanalen — δ̂_OLS blir skjev. Det er nettopp dette IV med φ_VR som instrument korrigerer for. Mekanismen utdypes i blokk 3.
 
 **Hvorfor er φ_PDI på høyresiden av (6) og ikke et instrument?** Institusjonelt: PDI-beslutninger ble tatt på sosialforsikringskontor (430 kontor) mens VR ble forvaltet av arbeidskontor (152 kontor) — PDI-administrasjonen lå altså på et **mer lokalt** nivå (fotnote 3, s. 10). M&R har derfor valgt å la φ_PDI virke direkte gjennom sin egen koeffisient τ, mens P_VR1..P_VR4 er endogene og instrumenteres med de fire φ_VR-ene. Fotnote 6 (s. 20) — knyttet til tabell 2 — viser at φ_PDI har distinkt prediktiv kraft for *programdeltakelse* selv betinget på φ_VR; det er det samme administrative nivå-skillet som ligger bak begge designvalgene.
 
