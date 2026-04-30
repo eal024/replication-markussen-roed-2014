@@ -26,6 +26,7 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 - Variabelnavn i data: snake_case, engelske (matcher artikkelens terminologi)
 - Hjelpefunksjoner: prefix `fn_` for interne hjelpefunksjoner
 - Nye skript får dato-prefiks: `YYYY-MM-DD_beskrivelse.R`
+- **Unntak — kanonisk inngangsskript:** `01_simuler_data.R` beholder den numeriske prefiksen som kanonisk tabell-1-replikasjon (forløper til alle senere skript). Andre skript skal ha datoprefiks.
 
 ## Arbeidsflyt
 
@@ -59,22 +60,37 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 ## Referansemateriale
 
 - `notes/markussen_roed_2014/notes.md` — sammendrag av artikkelen
-- `notes/markussen_roed_2014/Markussen_Roed_2014.md` — full artikkeltekst
-- `notes/data_dictionary.md` — dokumentasjon av simulert datasett
+- `notes/markussen_roed_2014/identifikasjonsstrategi.md` — pedagogisk gjennomgang av likning 6, instrumentkonstruksjon, IV/2SLS
+- `notes/markussen_roed_2014/kilde/Markussen_Roed_2014.md` — full artikkeltekst
+- `notes/markussen_roed_2014/kilde/splits/` — sidesplittede utdrag av artikkelen
+- `notes/data_dictionary.md` — dokumentasjon av simulerte datasett
 - `notes/oppskrift_replikasjon_data.md` — generell oppskrift for replikasjon
+- `notes/forelesninger/econ5106_L08_late.pdf` — forelesningsnotater om IV/LATE
 - `log/2026-03-27_notes_go_through_reading.md` — lesenotater med metodologisk innsikt
 
 ## Tilstand nå
 
-- **Ferdig:** Tre-delt struktur for IV-replikasjon (DGP / diagnostikk / estimering), år-utdanning + venstre-trunkert Y, full tabell 2-relevansmatrise, IV gjenfinner sann β for VR1 og PDI
-- **Pågår:** To åpne diagnostikk-spørsmål — (1) PDI-spillover snur fortegn pga. competing risks (motsatt av artikkelen), (2) VR3 dominerer som største behandling og presser kryssvirkninger negativt
-- **Neste:** Heve PDI-spillover eller variabelt tidsbudsjett, klyngestandardfeil på kontornivå, berike datasettet for full tabell 1-sammenligning
-- **Tabell 1-data (eldre strøm):** `scripts/R/01_simuler_data.R`
-- **IV-instrument (eldre):** `scripts/R/02_iv_instrument.R`
-- **Hazard + tabell 2 (eldre eksperiment):** `scripts/R/2026-04-09_replikasjon_hazard_event_data.R`
-- **DGP + jackknife:** `scripts/R/2026-04-10_simuler_utfall_data.R` → `data/iv_replikasjon.rds`
-- **Diagnoseplott (frittstående):** `scripts/R/2026-04-10_diagnoseplott.R` → `output/diagnose_*.pdf`
-- **Estimering (deskriptiv → tabell 2 → OLS/RF/IV):** `scripts/R/2026-04-10_estimering_rf_iv.R`
+- **Ferdig:** Tre frittstående mini-IV-skript med M&R-notasjon (P, φ, y, x, β): minimal (1D, 1Z), to-endogene, fire-endogene. Alle bruker `lm` så hvert steg er synlig, og kobler tabell 2 / 3 / 4 fra artikkelen direkte til FS / RF / 2SLS i koden. Notasjonsseksjon lagt til i metodelogg (`2026-04-08_...`).
+- **To-fase-DGP** påbegynt (`simuler_utfall_to_fase.R` → `data/iv_replikasjon_to_fase.rds`) som svar på at v1-hovedspesifikasjonen feilet pga. perfekt motkorrelasjon mellom D_pdi og D_vr_k. PDI er nå et separat post-VR-utfall, ikke en konkurrerende første-hendelse. Estimering med to-fase-data er ikke fullført.
+- **Neste økt** (brukerens forslag): pedagogisk spor — (2a) IV-antakelsene fra forelesningsslide 9 sjekket på `iv_to_endogene.R`, (2b) leave-one-out-konstruksjon i eget mini-skript, (2c) hazard-timing-laget. Deretter datakonstruksjon (3) og VLT-parallell (4) underveis.
+
+### Skript-oversikt
+
+**Aktive skript (`scripts/R/`):**
+- `01_simuler_data.R` — replikerer tabell 1 (deskriptiv statistikk)
+- `2026-04-10_simuler_utfall_data.R` — hazard-timing-mekanismen (v1-DGP, 5 competing risks med ligning 2 + jackknife) → `data/iv_replikasjon.rds`
+- `2026-04-10_iv_fire_endogene.R` — pedagogisk multi-endogen IV med 4 behandlinger, M&R-notasjon (P, φ, y, x, β), kobler tabell 2/3/4 til FS/RF/2SLS
+
+**Arvet/parkert (`scripts/R/arv/`):**
+- `02_iv_instrument.R` — tidlig IV-instrument-eksperiment
+- `2026-03-22_replica_markussen_roed.R` — første replikasjonsforsøk
+- `2026-04-09_replikasjon_hazard_event_data.R` — tidlig hazard-eksperiment
+- `2026-04-10_diagnoseplott.R` — diagnoseplott for v1-DGP
+- `2026-04-10_estimering_rf_iv.R` — estimeringsskript (delvis pivotert mellom v1 og to-fase)
+- `2026-04-10_iv_minimal.R` — Skript 1 i pedagogisk byggesteg-spor (1 D, 1 Z)
+- `2026-04-10_iv_to_endogene.R` — Skript 2 i pedagogisk byggesteg-spor (2 endogene)
+- `2026-04-10_simuler_utfall_to_fase.R` — to-fase-DGP (PDI som post-VR-utfall, eksperimentell)
+
 - **RStudio-prosjektfil:** `replication-markussen-roed-2014.Rproj`
 
 *Oppdateres ved vesentlige skift.*

@@ -1,5 +1,7 @@
 # Notater: Markussen & Røed (2014) — The Impacts of Vocational Rehabilitation
 
+*Opprettet: 2026-03-27*
+
 IZA Discussion Paper No. 7892. Frischsenteret.
 
 ---

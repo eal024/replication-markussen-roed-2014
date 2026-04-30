@@ -22,6 +22,59 @@ Detaljert gjennomgang av M&R (2014) seksjon 3 (Empirical strategy), side 12–19
 - **Hvorfor LPM (ikke logit):** (a) leave-one-out kan beregnes analytisk med Sherman-Morrison, (b) unngår at funksjonell form driver resultater (Angrist & Pischke 2009, kap. 3.4.2)
 - **Artikkelen bruker dummyer (ikke-parametrisk)** for de fleste kontrollvariabler — dette er viktig for troverdighet
 
+## Notasjon — variabler i ligningene
+
+Ligningene i seksjon 3 bruker en kompakt indeksnotasjon. Her er full ordliste over hva hver indeks og hvert symbol står for, slik at notatet kan leses uten å gå tilbake til artikkelen.
+
+### Indekser
+
+| Symbol | Betyr | Verdiområde |
+|---|---|---|
+| **i** | Individ (TDI-tilgang) | 1, 2, ..., N (≈ 345 000 i artikkelen) |
+| **j** | Lokalt behandlingsmiljø = **kontor × inngangsår** | én verdi per kontor-år-kombinasjon (s. 14: «A treatment environment corresponds to a particular local administrative entity and a particular year of entry») |
+| **d** | **Risikomåned** — antall måneder siden TDI-inntreden, ikke kalendermåned | 1, 2, ..., 24 (høyresensureres ved 24 mnd) |
+| **S** | Type tilstand / behandling individet kan gå over til | {VR1, VR2, VR3, VR4, PDI} — én ligning estimeres per S |
+| **k** | Type utfall i ligning 1 | f.eks. {jobb, PDI, inntekt} |
+
+### Variabler
+
+| Symbol | Betyr |
+|---|---|
+| **P_Sijd** | Hendelsesindikator: **= 1** hvis individ _i_ gjør overgang til tilstand _S_ i risikomåned _d_, **= 0** ellers. Individet bidrar med én rad per måned «at risk» til hendelsen inntreffer eller spellet sensureres. Når P_S = 1 forsvinner individet ut av risikosettet for den S-en. |
+| **x_i** | Vektor av **kontrollvariabler** for individ _i_: alder, kjønn, utdanning, nasjonalitet, tidligere arbeidsinntekt, tidligere trygdemottak, lokale sosioøkonomiske forhold, lokale konjunkturer, inngangsmåned-dummyer. Stort sett dummy-kodet (ikke-parametrisk) i artikkelen. |
+| **d** (vektor) | **Varighetsdummyer** — én dummy per risikomåned (factor(month_d)) som fanger ikke-parametrisk baseline hazard. Forveksles ikke med skalaren _d_ over: vektoren `d` er settet av varighetsdummyer, skalaren _d_ er hvilken måned vi er i. |
+| **u_Sijd** | Residual fra ligning 2 — det som er igjen etter at varighet og x er trukket fra. Tolkes som «kontorets behandlingstilbøyelighet» pluss støy. |
+| **φ_Si** | Lokal behandlingsstrategi for tilstand _S_, sett fra individ _i_ — gjennomsnittet av residualene blant **alle andre** i samme kontor-år (leave-one-out). Vektoren **φ_i** = (φ_PDI,i, φ_VR1,i, ..., φ_VR4,i) har fem elementer. |
+| **y_ki** | Utfall _k_ for individ _i_ (f.eks. arbeidsinntekt over 5 år, jobb år 1, PDI år 1). |
+| **D_Si** | Faktisk behandlingsdummy: 1 hvis individ _i_ faktisk mottok behandling _S_ som første tiltak. Endogen i ligning 1, instrumenteres med φ_Si i IV-spesifikasjonen. |
+
+### Sammenheng mellom symbolene — kort om ligning 1–6
+
+Hele identifikasjonskjeden går gjennom seks ligninger. De fire i midten (2 → 3 → 4 → 5) er hjelpetrinn som lager instrumentet **φ_i**, mens ligning 1 og 6 er de to utfallsligningene som faktisk gir effektestimater (henholdsvis reduced form og IV).
+
+| Ligning | Formel (skjematisk) | Hva er det? |
+|---|---|---|
+| **Ligning 1** (s. 13) | `y_ki = β_k·φ_i + x_i'δ_k + ε_ki` | **Reduced form-utfallsligning** — strategien φ settes direkte inn. β_k = totaleffekt av å være på et «aktivt» kontor (ITT-aktig). |
+| **Ligning 2** (s. 15) | `P_Sijd = d'α + x_i'β + u_Sijd` | **LPM-hazard** i person-måned-format. Estimeres med OLS for å rense ut varighet og x. Det vi bryr oss om er residualen `û_Sijd`. |
+| **Ligning 3** (s. 16) | `û_Si = Σ_{d=1}^{D_Si} û_Sijd` | **Sum av residualer per individ** — hver person bidrar én residual per risikomåned, vi legger dem sammen. Tolkes som «kovariatjustert overgangstilbøyelighet på klientnivå»: positiv hvis personen gikk over raskere enn x skulle tilsi, negativ ellers. På tvers av alle individer er snittet 0 by construction. |
+| **Ligning 4** (s. 16) | `φ_Sj = (1/N_j) · Σ_{i ∈ j} û_Si` | **Naivt miljømål** — snitt av residualsummene over alle N_j klienter i kontor-år _j_. Dette ville vært en god proxy for kontorets strategi, men kan ikke brukes direkte fordi person _i_ selv inngår i snittet som senere brukes til å forklare _i_'s utfall. |
+| **Ligning 5** (s. 16) | `φ_Si = (1/(N_j − 1)) · Σ_{i' ≠ i, i' ∈ j} û_Si'` | **Leave-one-out-versjonen (jackknife)** — samme som (4), men person _i_ er fjernet fra snittet. Hvert individ får sin egen φ_Si som er snittet av *alle andres* aggregerte residualer i samme kontor-år. |
+| **Ligning 6** (s. 18) | `y_ki = Σ_S γ_kS·D_Si + x_i'δ_k + ε_ki`, med D instrumentert via φ | **IV-utfallsligning** — faktisk behandling D_Si på høyresiden, instrumentert med vektoren **φ_i** = (φ_VR1,i, …, φ_VR4,i, φ_PDI,i). γ_kS får LATE-tolkning for compliers. |
+
+### Jackknife-metoden i én setning
+
+Problemet ligning 5 løser: hvis person _i_'s egen behandlingshistorikk inngår i kontor-års-snittet som så skal forklare _i_'s utfall, oppstår en **mekanisk korrelasjon** mellom regressor og feilledd (cov(û_Si, ε_ki) ≠ 0 selv om sann effekt er null). Løsningen — kjent som **jackknife IV** (Angrist & Pischke 2009, kap. 4.6) — er å fjerne én observasjon om gangen: hvert individ får en versjon av φ som er beregnet uten dem selv. Forskjellene mellom individenes φ-verdier er minimale (1 av N_j klienter byttes ut), så instrumentet fanger fortsatt kontorets systematiske praksis, men er nå eksogent for personen det skal brukes på (gitt at x fanger residential sortering — se neste avsnitt).
+
+### Konkret tolkning av P_Sijd
+
+For individ _i_ = 47, kontor-år _j_ = «Kontor A, 2002», tilstand _S_ = VR1:
+
+- Hvis person 47 starter VR1 i måned 3 → person 47 bidrar med 3 rader: P_VR1,47,j,1 = 0, P_VR1,47,j,2 = 0, **P_VR1,47,j,3 = 1**, og forsvinner deretter ut av risikosettet for VR1.
+- Hvis person 47 aldri får VR1 → 24 rader, alle med P_VR1 = 0 (høyresensurert).
+- Hvis person 47 starter VR3 i måned 5 → 5 rader for VR1-ligningen (alle 0, censurert ved overgang til konkurrerende risiko), og 5 rader for VR3-ligningen der den siste har P_VR3 = 1.
+
+Hver av de fem S-tilstandene har sitt eget person-måned-datasett og sin egen LPM, der `u_Sijd` deretter brukes til å lage `φ_Si`.
+
 ## Deskriptive observasjoner (side 12, tabell 1)
 
 - 20 % av spellene er ikke avsluttet innenfor observasjonsperioden (5 år)

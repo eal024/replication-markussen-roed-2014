@@ -24,12 +24,22 @@
 - [x] Lagret persondatasett med D, Y, Z (`data/iv_replikasjon.rds`)
 - [x] Reduced form, naiv OLS og 2SLS — IV gjenfinner sann β for VR1, VR2, PDI
 - [x] Førstesteg-F (70–188) bekrefter instrumentets relevans
+- [x] Tre frittstående mini-IV-skript: minimal (1D, 1Z), to-endogene, fire-endogene, alle med M&R-notasjon (P, φ, y, x, β)
+- [x] Notasjonsdel lagt til i `2026-04-08_gjennomgang_empirisk_strategi.md` med tabell over ligning 1–6 og kort jackknife-forklaring
+- [x] To-fase-DGP påbegynt: VR-tildeling i fase 1, PDI som separat post-VR-utfall i fase 2 (`simuler_utfall_to_fase.R`)
 
 ## Neste økt (prioritert rekkefølge)
 
-### Åpne diagnostikk-spørsmål (fra 2026-04-10-økten)
-- [ ] **PDI-spillover snur fortegn:** vår DGP gir negative Z_PDI → D_VR pga. competing risks. Heve `pdi_spillover` til 0.3–0.5, eller modellere kontorets saksbehandlingstempo separat fra behandlingsmiks
-- [ ] **VR3 dominerer competing risks:** vurder å redusere z_vr3-spennet eller innføre variabelt tidsbudsjett (ikke fast 24 mnd) for å dempe nullsum-logikken
+### Pedagogisk byggesteg-spor (fra 2026-04-10-økten, brukerens forslag)
+- [ ] **(2a) IV-antakelsene** — gå gjennom random assignment, exclusion, monotonicity, relevance på `iv_to_endogene.R`. Bruk forelesningsslide 9 som mal. Sjekk hver antakelse mot vår DGP.
+- [ ] **(2b) Leave-one-out-konstruksjon** — eget mini-skript som viser hvordan φ bygges fra observert kontorvariasjon (residualisering + jackknife), bygd på `iv_to_endogene.R`. Koble til z1 fra det opprinnelige mini-skriptet.
+- [ ] **(2c) Hazard-timing-laget** — eventuelt et tredje mini-skript som viser ligning 2 (person-måned-format) som forløper til φ. Krever person-måned-konstruksjon.
+- [ ] **(3) Datakonstruksjon** — fortsette der `simuler_utfall_to_fase.R` slapp; bruke innsiktene fra mini-skriptene
+- [ ] **(4) VLT-case** — droppes inn underveis: «hva er kontoret i VLT?», «hva er den kausale frikoblingen?»
+
+### Åpne diagnostikk-spørsmål (fra v1-DGP, 2026-04-10)
+- [ ] **PDI-spillover snur fortegn:** vår v1-DGP gir negative Z_PDI → D_VR pga. competing risks. Delvis adressert i `simuler_utfall_to_fase.R` (PDI som post-VR-utfall)
+- [ ] **VR3 dominerer competing risks:** vurder å redusere z_vr3-spennet eller innføre variabelt tidsbudsjett
 - [ ] **Inntektsnivå er ~2× artikkelen:** kalibrere α_y nedover hvis vi vil ha full tabell 1-match
 
 ### Forbedre simulering / robusthet

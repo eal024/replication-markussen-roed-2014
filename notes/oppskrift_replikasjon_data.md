@@ -1,5 +1,7 @@
 # Oppskrift: Replikasjon av empirisk artikkel med simulerte data
 
+*Opprettet: 2026-04-02*
+
 > Denne filen er en arbeidsoppskrift for å replikere empiriske artikler steg for steg. Den er designet som grunnlag for en gjenbrukbar skill som kan brukes på tvers av replikasjonsprosjekter.
 
 ---
