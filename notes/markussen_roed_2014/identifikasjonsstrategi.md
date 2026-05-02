@@ -139,3 +139,19 @@ Bevisst forbigått, men relevant for fullstendig forståelse av identifikasjonen
 - **Robusthetstester** (tabell 5–7): tidskonstant instrument; placebo med tidligere inntekt; placebo med ikke-klienter. Disse er *del av* identifikasjonens troverdighet, ikke bare tilleggsanalyser.
 - **Begrensning ved leave-one-out i små miljøer**: kontor-år-celler med få klienter gir støyete instrumenter — ikke diskutert eksplisitt av M&R, men en åpenbar svakhet.
 - **Detaljerte LATE-tolkninger ved multi-treatment** — Kirkeboen, Leuven & Mogstad (2016) går grundigere inn på dette enn M&R selv gjør; nyttig referanse.
+
+---
+
+## Replikasjons-DGP for VR1-bias (`scripts/R/2026-04-30_dgp_bias_minimal.R`)
+
+For å reprodusere OLS-skjevheten i likning 6 — som forberedelse til IV — har vi bygget en minimal DGP der VR-behandling samples uavhengig (etter andelene i Tabell 1), og `helse` (η) genereres betinget på behandling slik at cov(P, η) ≠ 0. Tabellen oppsummerer hvor hver parameter kommer fra.
+
+**Tabell 2.** Konstruksjon av `age`, `helse` og `y` i replikasjons-DGP-en. Hver rad viser den fullstendige genereringsformelen for én variabel (skalar + lineær kombinasjon av VR-dummyer + støy) og hvor parameterne er hentet fra. Format: én rad per variabel — utvider seg horisontalt når flere kanaler legges til, ikke vertikalt.
+
+| Variabel | Konstruksjon | Kilder |
+|---|---|---|
+| `age` | 42 − 5·x1 − 4·x2 − 7·x3 − 5·x4 + N(0, 10) | Tabell 1: alder per VR-gruppe (42.5 / 37.1 / 38.4 / 35.0 / 37.3) |
+| `helse` | 0.6·x1 + 1.0·x2 + 0.3·x3 + 0.5·x4 + N(0, 1) | Kalibrert mot Tabell 1: tidligere inntekt invers-rangert (lavere inntekt → høyere η) |
+| `y` | 163 + 57·x1 − 46·x2 + 59·x3 − 48·x4 + 0.5·age − 50·helse + N(0, 40) | α: Tabell 1 (ubehandlet 5-årssnitt); β_k: Tabell 4 (IV); γ_age, λ_η: pedagogiske valg |
+
+> x_k er one-hot-VR-dummyer (x0 = ubehandlet, referanse). N(μ, σ) er normalstøy. Sanne β_k er det IV skal gjenfinne fra y-likningen; kontroll- og uobservert-koeffisienter (γ_age, λ_η) er pedagogiske valg, ikke hentet direkte fra artikkelen. `helse` brukes i y-konstruksjonen, men tas *ikke* med i OLS-regresjonen — det er nettopp det som genererer biasen.
