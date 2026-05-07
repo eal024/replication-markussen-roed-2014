@@ -1,9 +1,16 @@
 # Variabler i Markussen & Røed (2014) — kartlegging mot egne registre
 
 > **Opphav:** replikasjonsrepoet `replication-markussen-roed-2014`
-> **Filsti i opphav:** `notes/2026-05-07_data_variabel_kartlegging_basertMR_2014.md`
-> **GitHub:** https://github.com/eal024/replication-markussen-roed-2014
-> **Lokal sti (opphav):** `/home/eirik/Documents/replication-markussen-roed-2014`
+> **GitHub (opphav):** https://github.com/eal024/replication-markussen-roed-2014
+>
+> **Filen finnes parallelt i to repoer:**
+> - **Replikasjon (opphav):** `replication-markussen-roed-2014/notes/2026-05-07_data_variabel_kartlegging_basertMR_2014.md`
+> - **Phd-data (kopi):** `phd-data/kartlegging/2026-05-07_data_variabel_kartlegging_basertMR_2014.md`
+>
+> **Sync-regel:**
+> 1. **Ved oppstart av arbeidsøkt** — sjekk om den andre kopien er nyere. Kjør `git log -1 --format="%cd %s" -- <fil>` i begge repoer eller `diff` direkte mellom dem. Hvis ulik: slå sammen før du redigerer videre.
+> 2. **Ved endringer i én kopi** — speil til den andre i samme arbeidsøkt. Bruk samme commit-tekst der det er mulig. Avvik blir vanskelige å oppdage senere.
+>
 > **Relaterte notater i opphav:**
 > - `notes/markussen_roed_2014/notes.md` — sammendrag av artikkelen
 > - `notes/markussen_roed_2014/identifikasjonsstrategi.md` — IV-strategien
@@ -13,8 +20,6 @@
 > **Artikkel:** Markussen & Røed (2014), "The Impacts of Vocational Rehabilitation", IZA Discussion Paper No. 7892.
 >
 > **Formål:** Kartlegge variablene M&R bruker, og bygge bro til registervariabler for egen IV-analyse av varig lønnstilskudd (VLT).
->
-> **Tilbakeflytting til phd-data-repo:** Filen er skrevet for å kunne flyttes uendret. Behold opphavslinjene over slik at koblingen til replikasjonsarbeidet er sporbar. Når filen flyttes, oppdater "Lokal sti (opphav)" og legg inn ny "Lokal sti (her)".
 
 ---
 
@@ -177,3 +182,4 @@ Enig i at **utdanningsdata (K4)** er det mest betydelige avviket — M&R bruker 
 | 2026-05-07 | Lagt til seksjon "Andre kandidater under vurdering" med høy/medium/lav-prioritert kandidatliste, samt kommentar til "største avviket" (utdanning + O1=O2 + O5 + O7). |
 | 2026-05-07 | Nye rader: K6 sivilstand (FREG), K7 antall barn under 18 (FREG), O11 arbeidsgiver-ID (A-ordningen), O12 bostedsfylke (avledet av O4). Ny gruppe V (VLT-spesifikt) med V1–V4. Andre kandidater oppdatert: VLT/arbeidsgiver/sivilstand/barn/bostedsfylke flyttet til tabell; diagnose markert som "venter — tas opp senere". |
 | 2026-05-07 | Filnavn endret til `2026-05-07_data_variabel_kartlegging_basertMR_2014.md` (datoprefiks + mer presist navn). |
+| 2026-05-07 | Filen kopiert til `phd-data/kartlegging/`. Header omstrukturert til parallell-kopi-modell med sync-regel (sjekk diff ved øktstart, speil endringer samme økt). |
