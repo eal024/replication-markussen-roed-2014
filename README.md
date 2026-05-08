@@ -27,6 +27,7 @@ Formålet er å forstå IV-strategien i detalj ved å gjenskape analysen med sim
 │   ├── 01_simuler_data.R                  # Datagenerering (tabell 1)
 │   ├── 2026-04-10_iv_fire_endogene.R      # Multi-endogen IV med 4 behandlinger
 │   ├── 2026-04-10_simuler_utfall_data.R   # v1-DGP med fem competing risks
+│   ├── 2026-05-08_iv_jackknife_minimal.R  # Minimalt jackknife-eksempel (ligning 5)
 │   └── arv/                               # Parkerte / eksperimentelle skript
 ├── data/                                  # Simulerte datasett (.rds)
 ├── output/                                # Figurer og diagnoseplott
@@ -46,7 +47,7 @@ Formålet er å forstå IV-strategien i detalj ved å gjenskape analysen med sim
 
 ## Status
 
-Simulert datasett (N=345 107) som matcher tabell 1 ferdig. IV-instrumentkonstruksjon verifisert: person-måned-data med diskret varighetsmodell (likning 2), residualbasert leave-one-out-instrument (likning 5) som signifikant predikerer behandling. Tre frittstående mini-IV-skript dekker 1D/1Z, 2D/2Z og 4D/4Z med M&R-notasjon. 2SLS gjenfinner sann β for hovedbehandlingene. Identifikasjonsstrategien er oppsummert pedagogisk i `notes/markussen_roed_2014/identifikasjonsstrategi.md`. Neste steg: full M&R-replikasjon med klyngestandardfeil og flere utfall.
+Simulert datasett (N=345 107) som matcher tabell 1 ferdig. IV-instrumentkonstruksjon verifisert: person-måned-data med diskret varighetsmodell (likning 2), residualbasert leave-one-out-instrument (likning 5) som signifikant predikerer behandling. Tre frittstående mini-IV-skript dekker 1D/1Z, 2D/2Z og 4D/4Z med M&R-notasjon. 2SLS gjenfinner sann β for hovedbehandlingene. Eget jackknife-mini (`2026-05-08_iv_jackknife_minimal.R`) viser ligning 5 isolert: tre versjoner av φ (truth, naïv, jack) side om side; naïv gir biased IV, jack gjenoppretter eksogeniteten. Identifikasjonsstrategien er oppsummert pedagogisk i `notes/markussen_roed_2014/identifikasjonsstrategi.md`. Neste steg: full M&R-replikasjon med klyngestandardfeil og flere utfall.
 
 ## Dokumentoversikt
 
@@ -68,6 +69,7 @@ Simulert datasett (N=345 107) som matcher tabell 1 ferdig. IV-instrumentkonstruk
 | [2026-04-08_gjennomgang_empirisk_strategi.md](log/2026-04-08_gjennomgang_empirisk_strategi.md) | Detaljert gjennomgang av seksjon 3 (likning 2–6, leave-one-out, person-måned-format) |
 | [2026-04-10_iv_minimal_byggesteg.md](log/2026-04-10_iv_minimal_byggesteg.md) | Pedagogisk byggesteg-spor: tre frittstående mini-IV-skript med M&R-notasjon |
 | [2026-04-10_rf_iv_estimering.md](log/2026-04-10_rf_iv_estimering.md) | Reduced form, OLS og IV på simulert datasett — sann β-gjenfinning |
+| [2026-05-08_jackknife_minimal.md](log/2026-05-08_jackknife_minimal.md) | Jackknife-konstruksjon (ligning 5) i isolert minimalt skript: truth vs naïv vs jack |
 
 ### Kildemateriale
 

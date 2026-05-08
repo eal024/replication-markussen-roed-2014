@@ -32,7 +32,8 @@
 
 ### Pedagogisk byggesteg-spor (fra 2026-04-10-økten, brukerens forslag)
 - [ ] **(2a) IV-antakelsene** — gå gjennom random assignment, exclusion, monotonicity, relevance på `iv_to_endogene.R`. Bruk forelesningsslide 9 som mal. Sjekk hver antakelse mot vår DGP.
-- [ ] **(2b) Leave-one-out-konstruksjon** — eget mini-skript som viser hvordan φ bygges fra observert kontorvariasjon (residualisering + jackknife), bygd på `iv_to_endogene.R`. Koble til z1 fra det opprinnelige mini-skriptet.
+- [x] **(2b) Leave-one-out-konstruksjon** — `2026-05-08_iv_jackknife_minimal.R` viser tre versjoner av φ (truth, naive, jack) side om side, diagnose mot egen η, og 1/N_j-bias-skala via Monte Carlo. Sann β = 30 gjenfinnes av jack, ikke av naive.
+- [ ] **(2b+) Jackknife på residualer** — utvid jackknife-skriptet til å først x-rense via en mini-ligning 2 og deretter jackknife residualene (knytter eksplisitt til M&R sin ligning 2 → 3 → 4 → 5-kjede)
 - [ ] **(2c) Hazard-timing-laget** — eventuelt et tredje mini-skript som viser ligning 2 (person-måned-format) som forløper til φ. Krever person-måned-konstruksjon.
 - [ ] **(3) Datakonstruksjon** — fortsette der `simuler_utfall_to_fase.R` slapp; bruke innsiktene fra mini-skriptene
 - [ ] **(4) VLT-case** — droppes inn underveis: «hva er kontoret i VLT?», «hva er den kausale frikoblingen?»

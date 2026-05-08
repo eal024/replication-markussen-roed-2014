@@ -71,8 +71,9 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 ## Tilstand nå
 
 - **Ferdig:** Tre frittstående mini-IV-skript med M&R-notasjon (P, φ, y, x, β): minimal (1D, 1Z), to-endogene, fire-endogene. Alle bruker `lm` så hvert steg er synlig, og kobler tabell 2 / 3 / 4 fra artikkelen direkte til FS / RF / 2SLS i koden. Notasjonsseksjon lagt til i metodelogg (`2026-04-08_...`).
+- **Jackknife-mini (todo 2b)** ferdig: `2026-05-08_iv_jackknife_minimal.R` viser ligning 5 ved å sammenligne tre versjoner av instrumentet (truth, naïv, jack) side om side. Naïv-IV er ~2 enheter biased nedover, jack gjenfinner sann β = 30. Monte Carlo i bonusseksjonen viser at biasen i naïv avtar som 1/N_j.
 - **To-fase-DGP** påbegynt (`simuler_utfall_to_fase.R` → `data/iv_replikasjon_to_fase.rds`) som svar på at v1-hovedspesifikasjonen feilet pga. perfekt motkorrelasjon mellom D_pdi og D_vr_k. PDI er nå et separat post-VR-utfall, ikke en konkurrerende første-hendelse. Estimering med to-fase-data er ikke fullført.
-- **Neste økt** (brukerens forslag): pedagogisk spor — (2a) IV-antakelsene fra forelesningsslide 9 sjekket på `iv_to_endogene.R`, (2b) leave-one-out-konstruksjon i eget mini-skript, (2c) hazard-timing-laget. Deretter datakonstruksjon (3) og VLT-parallell (4) underveis.
+- **Neste økt** (brukerens forslag): pedagogisk spor — (2a) IV-antakelsene fra forelesningsslide 9 sjekket på `iv_to_endogene.R`, (2b+) utvid jackknife-skriptet med residual-rensing, (2c) hazard-timing-laget. Deretter datakonstruksjon (3) og VLT-parallell (4) underveis.
 
 ### Skript-oversikt
 
@@ -80,6 +81,7 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 - `01_simuler_data.R` — replikerer tabell 1 (deskriptiv statistikk)
 - `2026-04-10_simuler_utfall_data.R` — hazard-timing-mekanismen (v1-DGP, 5 competing risks med ligning 2 + jackknife) → `data/iv_replikasjon.rds`
 - `2026-04-10_iv_fire_endogene.R` — pedagogisk multi-endogen IV med 4 behandlinger, M&R-notasjon (P, φ, y, x, β), kobler tabell 2/3/4 til FS/RF/2SLS
+- `2026-05-08_iv_jackknife_minimal.R` — minimalt jackknife-eksempel (1D, 1Z): tre φ-versjoner side om side (truth, naïv, jack), diagnose mot egen η, og MC-bonus som viser 1/N_j-bias-skala
 
 **Arvet/parkert (`scripts/R/arv/`):**
 - `02_iv_instrument.R` — tidlig IV-instrument-eksperiment
