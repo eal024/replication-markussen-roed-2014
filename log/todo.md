@@ -33,7 +33,8 @@
 ### Pedagogisk byggesteg-spor (fra 2026-04-10-økten, brukerens forslag)
 - [ ] **(2a) IV-antakelsene** — gå gjennom random assignment, exclusion, monotonicity, relevance på `iv_to_endogene.R`. Bruk forelesningsslide 9 som mal. Sjekk hver antakelse mot vår DGP.
 - [x] **(2b) Leave-one-out-konstruksjon** — `2026-05-08_iv_jackknife_minimal.R` viser tre versjoner av φ (truth, naive, jack) side om side, diagnose mot egen η, og 1/N_j-bias-skala via Monte Carlo. Sann β = 30 gjenfinnes av jack, ikke av naive.
-- [ ] **(2b+) Jackknife på residualer** — utvid jackknife-skriptet til å først x-rense via en mini-ligning 2 og deretter jackknife residualene (knytter eksplisitt til M&R sin ligning 2 → 3 → 4 → 5-kjede)
+- [x] **(2b+) Jackknife med tidsdimensjon** — `2026-05-08_iv_jackknife_med_tid.R` tar M&R-konstruksjonen seriøst: hazard-DGP for ett tiltak, person-måned-ekspansjon, ligning 2 på person-måned, residualer summert per person, jackknife over kontor. Notasjon strikt M&R. Loggført i `log/2026-05-11_jackknife_med_tid.md`.
+- [ ] **(2b++) Avklaringspunkter fra med-tid-økten** — kutte IV-tabellen fra med-tid-skriptet? Utvide til to tiltak (S ∈ VR1, VR2)? Klyngestandardfeil på kontor?
 - [ ] **(2c) Hazard-timing-laget** — eventuelt et tredje mini-skript som viser ligning 2 (person-måned-format) som forløper til φ. Krever person-måned-konstruksjon.
 - [ ] **(3) Datakonstruksjon** — fortsette der `simuler_utfall_to_fase.R` slapp; bruke innsiktene fra mini-skriptene
 - [ ] **(4) VLT-case** — droppes inn underveis: «hva er kontoret i VLT?», «hva er den kausale frikoblingen?»
