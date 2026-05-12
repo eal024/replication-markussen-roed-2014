@@ -20,35 +20,55 @@ Formålet er å forstå IV-strategien i detalj ved å gjenskape analysen med sim
 
 ```
 ./
-├── CLAUDE.md                              # Arbeidsregler for AI-assistenten
-├── README.md                              # Dette dokumentet
-├── replication-markussen-roed-2014.Rproj  # RStudio-prosjektfil
-├── scripts/R/
-│   ├── 01_simuler_data.R                  # Datagenerering (tabell 1)
-│   ├── 2026-04-10_iv_fire_endogene.R      # Multi-endogen IV med 4 behandlinger
-│   ├── 2026-04-10_simuler_utfall_data.R   # v1-DGP med fem competing risks
-│   ├── 2026-05-08_iv_jackknife_minimal.R  # Minimalt jackknife-eksempel (uten tidsdimensjon)
-│   ├── 2026-05-08_iv_jackknife_med_tid.R  # Jackknife med tidsdimensjon (ligning 2 → 5 trinn for trinn)
-│   └── arv/                               # Parkerte / eksperimentelle skript
-├── data/                                  # Simulerte datasett (.rds)
-├── output/                                # Figurer og diagnoseplott
+├── CLAUDE.md                                # Arbeidsregler for AI-assistenten
+├── README.md                                # Dette dokumentet
+├── replication-markussen-roed-2014.Rproj    # RStudio-prosjektfil
+├── scripts/R/                               # 2026-05-12: ryddet — 3 aktive skript
+│   ├── 01_simuler_data.R                    # Datagenerering (tabell 1, kanonisk)
+│   ├── 2026-05-08_iv_jackknife_med_tid.R    # Fasit-referanse for tidsdim jackknife
+│   ├── 2026-05-12_replikasjon_basis.R       # HOVEDSKRIPT: basisversjon M&R-replikasjon
+│   └── arv/                                 # 15 parkerte / eldre skript (se tabell nedenfor)
+├── data/                                    # Simulerte datasett (.rds)
+├── output/                                  # Figurer og diagnoseplott
 ├── notes/
 │   ├── data_dictionary.md
 │   ├── oppskrift_replikasjon_data.md
 │   ├── markussen_roed_2014/
-│   │   ├── notes.md                       # Eget arbeid: sammendrag + funn
-│   │   ├── identifikasjonsstrategi.md     # Eget arbeid: metodisk gjennomgang
+│   │   ├── notes.md                         # Eget arbeid: sammendrag + funn
+│   │   ├── identifikasjonsstrategi.md       # Eget arbeid: metodisk gjennomgang
 │   │   └── kilde/
-│   │       ├── Markussen_Roed_2014.md     # Full artikkeltekst
-│   │       └── splits/                    # Sidesplittede utdrag
+│   │       ├── Markussen_Roed_2014.md       # Full artikkeltekst
+│   │       └── splits/                      # Sidesplittede utdrag
 │   └── forelesninger/
-│       └── econ5106_L08_late.pdf          # IV/LATE-forelesningsnotater
-└── log/                                   # Arbeidslogg, sesjonsnotater og TODO
+│       └── econ5106_L08_late.pdf            # IV/LATE-forelesningsnotater
+└── log/                                     # Arbeidslogg, sesjonsnotater og TODO
 ```
+
+### Arkiv (`scripts/R/arv/`) — hva ligger der?
+
+| Fil | Hva |
+|---|---|
+| `02_iv_instrument.R` | Tidlig IV-instrument-eksperiment |
+| `2026-03-22_replica_markussen_roed.R` | Første replikasjonsforsøk |
+| `2026-04-09_replikasjon_hazard_event_data.R` | Tidlig hazard-eksperiment |
+| `2026-04-10_diagnoseplott.R` | Diagnoseplott for v1-DGP |
+| `2026-04-10_estimering_rf_iv.R` | Estimering RF/IV (mellom v1 og to-fase) |
+| `2026-04-10_iv_fire_endogene.R` | Pedagogisk multi-endogen IV (4 behandlinger) |
+| `2026-04-10_iv_minimal.R` | Byggesteg 1 (1 D, 1 Z) |
+| `2026-04-10_iv_to_endogene.R` | Byggesteg 2 (2 endogene) |
+| `2026-04-10_simuler_utfall_data.R` | v1-DGP, 5 competing risks |
+| `2026-04-10_simuler_utfall_to_fase.R` | To-fase-DGP (PDI som post-VR-utfall) |
+| `2026-04-30_dgp_bias_minimal.R` | DGP brukt av figur-skript |
+| `2026-05-02_figur_iv_sammenligning.R` | Figur OLS/IV-sammenligning |
+| `2026-05-08_iv_jackknife_minimal.R` | Minimalt jackknife (1D, 1Z, uten tid) + MC bias-skala |
+| `2026-05-11_iv_jackknife_minimal_med_tid.R` | Redundant kopi av minimal |
+| `sjekk.R` | 6-linjers source-test |
+
+Filer i `arv/` slettes aldri. Pedagogisk verdifulle å hente tilbake ved senere utvidelser: `iv_fire_endogene`, `iv_to_endogene`, og DGP+figur-paret.
 
 ## Status
 
-Simulert datasett (N=345 107) som matcher tabell 1 ferdig. IV-instrumentkonstruksjon verifisert: person-måned-data med diskret varighetsmodell (likning 2), residualbasert leave-one-out-instrument (likning 5) som signifikant predikerer behandling. Tre frittstående mini-IV-skript dekker 1D/1Z, 2D/2Z og 4D/4Z med M&R-notasjon. 2SLS gjenfinner sann β for hovedbehandlingene. To jackknife-mini-skript dekker konstruksjonen: `2026-05-08_iv_jackknife_minimal.R` viser ligning 5 isolert (truth/naïv/jack side om side, MC-bonus med 1/N_j-skala), og `2026-05-08_iv_jackknife_med_tid.R` tar tidsdimensjonen seriøst med hazard-DGP, person-måned-ekspansjon, ligning 2 → 3 → 4/5 trinn for trinn. Identifikasjonsstrategien er oppsummert pedagogisk i `notes/markussen_roed_2014/identifikasjonsstrategi.md`. Neste steg: full M&R-replikasjon med klyngestandardfeil og flere utfall.
+**Per 2026-05-12 — basisversjon ferdig.** `2026-05-12_replikasjon_basis.R` er ett samlet skript som tar M&R-strategien fra A til Å i miniformat: ability-narrativ (w korrelert med skolegang), hazard-DGP for ett tiltak (VR1) med kontor-kultur som eksogen kanal, person-måned-ekspansjon, LPM-hazard (ligning 2), residual-summering (ligning 3), naïv vs jackknife kontor-aggregering (ligning 4 og 5), y-simulering med endogenitetskanal via `lambda_w*w`, og fire estimerte modeller (OLS-sann, OLS-observert, IV-2SLS manuelt, reduced form) pluss `ivreg` for korrekte standardfeil. Tabell 1 ligger fortsatt i `01_simuler_data.R` (N=345 107). Fasit-referansen `2026-05-08_iv_jackknife_med_tid.R` er beholdt aktivt for sammenligning. Identifikasjonsstrategien er oppsummert pedagogisk i `notes/markussen_roed_2014/identifikasjonsstrategi.md`. Neste steg: utvide basisversjonen til to tiltak (S ∈ {VR1, VR2}), legge på klyngestandardfeil på kontornivå, og berike kovariater (alder, region).
 
 ## Dokumentoversikt
 

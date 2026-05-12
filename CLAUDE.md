@@ -78,22 +78,32 @@ log/              # Arbeidslogg, TODO, sesjonsnotater
 
 ### Skript-oversikt
 
-**Aktive skript (`scripts/R/`):**
-- `01_simuler_data.R` — replikerer tabell 1 (deskriptiv statistikk)
-- `2026-04-10_simuler_utfall_data.R` — hazard-timing-mekanismen (v1-DGP, 5 competing risks med ligning 2 + jackknife) → `data/iv_replikasjon.rds`
-- `2026-04-10_iv_fire_endogene.R` — pedagogisk multi-endogen IV med 4 behandlinger, M&R-notasjon (P, φ, y, x, β), kobler tabell 2/3/4 til FS/RF/2SLS
-- `2026-05-08_iv_jackknife_minimal.R` — minimalt jackknife-eksempel (1D, 1Z, *uten* tidsdimensjon): tre φ-versjoner side om side (truth, naïv, jack), diagnose mot egen η, og MC-bonus som viser 1/N_j-bias-skala
-- `2026-05-08_iv_jackknife_med_tid.R` — jackknife *med* tidsdimensjon: hazard-DGP for ett tiltak, person-måned-ekspansjon, ligning 2 → 3 → 4/5 trinn for trinn med M&R-notasjon
+**Aktive skript (`scripts/R/`) — 2026-05-12 etter opprydding:**
+- `01_simuler_data.R` — replikerer tabell 1 (deskriptiv statistikk, kanonisk inngang)
+- `2026-05-08_iv_jackknife_med_tid.R` — **fasit-referanse** for tidsdim jackknife: hazard-DGP, person-måned, ligning 2 → 3 → 4/5
+- `2026-05-12_replikasjon_basis.R` — **hovedskript / basisversjon av M&R-replikasjonen**. Full kjede: ability-narrativ, DGP med hazard, instrumentkonstruksjon (ligning 2→5), OLS/IV/RF-tabell, ivreg for korrekte SE. Utgangspunkt for senere utvidelser (to tiltak, klyngestandardfeil, flere kovariater)
 
-**Arvet/parkert (`scripts/R/arv/`):**
-- `02_iv_instrument.R` — tidlig IV-instrument-eksperiment
-- `2026-03-22_replica_markussen_roed.R` — første replikasjonsforsøk
-- `2026-04-09_replikasjon_hazard_event_data.R` — tidlig hazard-eksperiment
-- `2026-04-10_diagnoseplott.R` — diagnoseplott for v1-DGP
-- `2026-04-10_estimering_rf_iv.R` — estimeringsskript (delvis pivotert mellom v1 og to-fase)
-- `2026-04-10_iv_minimal.R` — Skript 1 i pedagogisk byggesteg-spor (1 D, 1 Z)
-- `2026-04-10_iv_to_endogene.R` — Skript 2 i pedagogisk byggesteg-spor (2 endogene)
-- `2026-04-10_simuler_utfall_to_fase.R` — to-fase-DGP (PDI som post-VR-utfall, eksperimentell)
+**Arvet/parkert (`scripts/R/arv/`) — 15 filer:**
+
+| Fil | Hva |
+|---|---|
+| `02_iv_instrument.R` | Tidlig IV-instrument-eksperiment |
+| `2026-03-22_replica_markussen_roed.R` | Første replikasjonsforsøk |
+| `2026-04-09_replikasjon_hazard_event_data.R` | Tidlig hazard-eksperiment |
+| `2026-04-10_diagnoseplott.R` | Diagnoseplott for v1-DGP |
+| `2026-04-10_estimering_rf_iv.R` | Estimeringsskript (delvis pivotert mellom v1 og to-fase) |
+| `2026-04-10_iv_fire_endogene.R` | Pedagogisk multi-endogen IV (4 behandlinger), M&R-notasjon, kobler tabell 2/3/4 til FS/RF/2SLS |
+| `2026-04-10_iv_minimal.R` | Pedagogisk byggesteg 1 (1 D, 1 Z) |
+| `2026-04-10_iv_to_endogene.R` | Pedagogisk byggesteg 2 (2 endogene) |
+| `2026-04-10_simuler_utfall_data.R` | v1-DGP, 5 competing risks → `data/iv_replikasjon.rds` |
+| `2026-04-10_simuler_utfall_to_fase.R` | To-fase-DGP (PDI som post-VR-utfall, eksperimentell) |
+| `2026-04-30_dgp_bias_minimal.R` | Pedagogisk DGP brukt av figur-skript |
+| `2026-05-02_figur_iv_sammenligning.R` | Figur OLS/IV-sammenligning (sourcer dgp_bias_minimal) |
+| `2026-05-08_iv_jackknife_minimal.R` | Minimalt jackknife-eksempel (1D, 1Z, *uten* tidsdimensjon): tre φ-versjoner + MC bias-skala |
+| `2026-05-11_iv_jackknife_minimal_med_tid.R` | Redundant kopi (duplikat av minimal) |
+| `sjekk.R` | 6-linjers source-test |
+
+Filer i arv/ slettes aldri. De kan kalles inn igjen ved senere utvidelser (særlig `iv_fire_endogene`, `iv_to_endogene` og `figur_iv_sammenligning`-paret som er pedagogisk verdifulle).
 
 - **RStudio-prosjektfil:** `replication-markussen-roed-2014.Rproj`
 
