@@ -331,10 +331,10 @@ df_phi <- df_resid |>
 #   RELEVANS:    cor(φ, z_office) > 0   — φ må faktisk fange kontor-kulturen
 #   EKSOGENITET: cor(φ, w) ≈ 0          — φ må være renset for personens w
 #
-# Forventning med dagens kalibrering og N = 1500:
-#   cor_naive_z ≈ 0.93   (sterk relevans — naïv fanger z_office godt)
-#   cor_jack_z  ≈ 0.92   (jackknife litt under, mister noe presisjon)
-#   cor_naive_w ≈ 0.0    (ved store N er 1/N_j-biasen forsvunnet)
+# Forventning med dagens kalibrering og N = 1500 (seed 123):
+#   cor_naive_z ≈ 0.87   (sterk relevans — naïv fanger z_office godt)
+#   cor_jack_z  ≈ 0.87   (jackknife marginalt lavere)
+#   cor_naive_w ≈ 0.0    (ved store N_j er 1/N_j-biasen liten i utgangspunktet)
 #   cor_jack_w  ≈ 0.0    (jackknife eksakt eksogen)
 #
 # Ved små N_j (f.eks. 5) ville naïv vise klart positiv cor med w, mens
@@ -355,13 +355,12 @@ df_phi |>
 # 5. UTFALLSLIKNINGEN OG ESTIMERING
 # =========================================================================
 #
-# Vi forhøyer beta_true til 50 for klarere visuell forskjell mellom OLS og
-# IV. Med lambda_w = 50 og beta_true = 50 forventer vi:
-#   sann β  = 50
-#   OLS uten w  ≈ 71  (overestimat — bias +21 fra omitted w)
-#   IV          ≈ 50  (gjenfinner sannheten)
-
-beta_true <- 50    # NB: overskriver parameter-definisjonen på linje 73 — bevisst
+# Med lambda_w = 50 og beta_true = 30 (seed 123) får vi:
+#   model_true       β̂ ≈ 28   (baseline; sampling-støy rundt 30)
+#   model_observert  β̂ ≈ 39   (OLS biased oppover, +9 fra omitted w)
+#   model_iv         β̂ ≈ 25   (IV gjenfinner sann effekt, m/MC-støy)
+#   model_rf         koef på φ ≈ 18 (sterk reduced form)
+#   første-steg F          ≈ 84   (sterkt instrument)
 
 # 5a. Konstruer y, og koble på instrumentet -------------------------------
 #
@@ -383,19 +382,20 @@ df_person4 <- df_person3 |>
 # 5b. FIRE MODELLER — hva de hver for seg viser ---------------------------
 #
 # (1) model_true       y ~ P + x + w
-#     "Hva vi ville sett om w var observerbar." Fasit-modellen. β̂ ≈ 50.
-#     Ikke realistisk i ekte data (w er per def uobservert), men nyttig
+#     "Hva vi ville sett om w var observerbar." Fasit-modellen. β̂ ≈ 28
+#     (sann β = 30, sampling-støy). Ikke realistisk i ekte data, men nyttig
 #     som baseline.
 #
 # (2) model_observert  y ~ P + x
 #     "Hva forskeren faktisk ser." Standard OLS, omitting w.
 #     β̂ er BIASED. Hvor mye? = λ_w · cov(P, w | x) / var(P | x)
-#     Med våre parametre ≈ +21 ⇒ β̂ ≈ 71. Dette er motiveringen for IV.
+#     Med våre parametre ≈ +9 ⇒ β̂ ≈ 39. Dette er motiveringen for IV.
 #
 # (3) model_iv          y ~ p_hat + x   (manuelt 2SLS)
-#     Vi instrumenterer P med φ_jack i førstesteget, og bruker den
-#     PREDIKERTE P̂ i andresteget. β̂ ≈ 50 — sann effekt gjenfunnet.
-#     ADVARSEL: SE er for små (lm tar ikke høyde for førstesteg-usikkerhet).
+#     Vi instrumenterer P med φ_si_j i førstesteget, og bruker den
+#     PREDIKERTE P̂ i andresteget. β̂ ≈ 25 — sann effekt gjenfunnet
+#     innenfor MC-støy. ADVARSEL: SE er for små (lm tar ikke høyde for
+#     førstesteg-usikkerhet).
 #
 # (4) model_rf          y ~ phi_si_j + x   (reduced form)
 #     Den DIREKTE effekten av kontor-praksis på y, uten å gå via P.
@@ -417,11 +417,11 @@ model_rf <- lm(y ~ female + year_school + phi_si_j, data = df_person4)
 
 # 5c. Sammenligning ------------------------------------------------------
 #
-# Forventet (sann β = 50):
-#   model_true       β̂ ≈ 50  (baseline)
-#   model_observert  β̂ ≈ 71  (OLS biased oppover via lambda_w · cov(P,w))
-#   model_iv         β̂ ≈ 50  (IV gjenfinner sann effekt)
-#   model_rf         koeff på phi ≠ 0  (sterk reduced form)
+# Forventet (sann β = 30, seed 123):
+#   model_true       β̂ ≈ 28   (baseline, sampling-støy)
+#   model_observert  β̂ ≈ 39   (OLS biased oppover via lambda_w · cov(P,w))
+#   model_iv         β̂ ≈ 25   (IV gjenfinner sann effekt innen MC-støy)
+#   model_rf         koef på phi ≈ 18 (sterk reduced form)
 #
 # Hvis dette mønsteret stemmer i din kjøring, er hele kjeden verifisert:
 # ligning 2 → 3 → 4 → 5 produserer et eksogent instrument med relevans,
