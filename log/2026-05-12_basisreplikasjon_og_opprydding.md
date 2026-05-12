@@ -58,5 +58,43 @@ Egen fra-bunnen-replikasjon av M&R-strategien skrevet stegvis i denne økten:
 - **Utvidelse til to tiltak** (S ∈ {VR1, VR2}) som bro mot full M&R-replikasjon
 - **Klyngestandardfeil** på kontornivå (M&R klynger på kontor × år)
 - **Flere kovariater**: alder, regional ledighet, tidligere inntekt
-- **Pedagogisk tabell over modellene** (kort tolkning av hver kolonne i stargazer-outputen)
 - **Eventuelt: ekstrahere kalibrerings-tabellen til eget forklarings-skript** (idé fra tidligere økt)
+
+## Tillegg samme dag — fyldige forklaringer (commit 0b6e50c)
+
+Basis-skriptet er utvidet fra ~310 til 548 linjer med pedagogiske
+kommentarblokker for hver seksjon. Hver matematisk operasjon har nå
+tilhørende forklaring av intuisjon, mekanisme, og hensikt:
+
+- **Kontor-kultur**: hvorfor `z_office` er hjertet i IV-strategien (eksogen)
+- **Hazard-formelen**: ledd-for-ledd-tolkning, hvorfor geometrisk fordeling,
+  hva `pmax(..., 1e-6)`-klippingen gjør
+- **Person-måned-ekspansjon**: konkret eksempel på hvordan behandlede og
+  sensurerte personer får ulikt antall rader
+- **Ligning 2 (LPM)**: hva u_id inneholder etter partialling, hvorfor LPM
+  (ikke logit), hvorfor `factor(d)` (ikke `d`)
+- **Ligning 3 (sum)**: hvorfor sum og ikke gjennomsnitt — eksponerings-vekting
+- **Ligning 4 vs 5**: mekanikken i naïv-bias (1/N_j), algebraisk derivasjon
+  av jackknife-formelen via identiteten `Σu = N_j · mean`
+- **Diagnose**: forventede korrelasjoner med dagens kalibrering og hva
+  avvik ville bety
+- **Fire modeller**: hva hver kolonne i stargazer viser (sann/observert/
+  IV/RF) — leseren kan tolke tabellen uten å spørre
+- **ivreg**: hvorfor manuelt 2SLS har for små SE — førstesteg-usikkerhet
+  ignoreres av lm()
+
+### Ny seksjon §6 — UTVIDELSER
+
+Avslutningsavsnitt med fire akser for videre arbeid:
+
+- **A) Flere VR-tiltak**: hvordan DGP, instrument og 2SLS endrer seg ved
+  multi-endogen IV. Refererer til `arv/2026-04-10_iv_fire_endogene.R`.
+- **B) Flere kovariater**: alder, innvandrerstatus, tidligere inntekt,
+  regional ledighet, inngangs-måned-dummyer. Forventet effekt på OLS-IV-gapet.
+- **C) Flere observasjoner + klyngestandardfeil**: oppskalering N, K +
+  `fixest::feols(..., vcov = "cluster", cluster = ~office_id)`.
+- **D) Pedagogiske tillegg**: Monte Carlo over flere frø, bias-skala for
+  ulike lambda_w, visualiseringer av phi mot z_office.
+
+Anbefalt rekkefølge: **(1) klyngestandardfeil → (2) to tiltak → (3) berike
+x → (4) full M&R med PDI som τ·φ_PDI-regressor**.
