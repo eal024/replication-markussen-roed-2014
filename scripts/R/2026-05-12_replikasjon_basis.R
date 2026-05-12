@@ -109,202 +109,440 @@ df_person1 <- df_person |>
     select(-school_c)
 
 
-# 1. Kontor-kultur: Tilfeldig--------------------------------------------
+# 2. KONTOR-KULTUR --------------------------------------------------------
+#
+# z_office er hvert kontors faste "behandlingsiver" — uavhengig av hvem som
+# tilfeldigvis ender opp der. Dette er HJERTET i identifikasjonsstrategien:
+# z_office er eksogen by construction (trukket fra rnorm uavhengig av w),
+# så variasjon i behandling drevet av z_office kan brukes som naturlig
+# eksperiment.
+#
+# I virkeligheten observerer vi ikke z_office direkte. M&R-tricket er at vi
+# senere konstruerer φ — et empirisk estimat av z_office — fra residualene
+# i ligning 2. Det er nettopp dette ligning 4 og 5 gjør.
 
-# Tilfeldig tildeling av kultur
 df_office <- tibble(
-    office_id = 1:n_offices,                         # id kontor
-    z_office  = rnorm( n_offices, mean = 0, sigma_z) # Sann kultur
+    office_id = 1:n_offices,
+    z_office  = rnorm(n_offices, mean = 0, sigma_z)
+)
+
+# Sett z_office på persondata. Etter dette har hver person en (skjult)
+# kontor-kultur knyttet til seg via office_id.
+df_person2 <- df_person1 |> left_join(df_office, join_by(office_id))
+
+
+# 3. HAZARD OG BEHANDLINGSTIDSPUNKT --------------------------------------
+#
+# Hver person har en månedlig sannsynlighet h for å gå over til VR1.
+# Formelen kombinerer fire kanaler:
+#
+#   h_i = h_base                                  baseline (kalibrert til ~27 % i 24 mnd)
+#       + 0.002 · female_i                        kjønnseffekt (kvinner litt mer)
+#       + 0.001 · (year_school_i − 10)            skolegang (mer skole, mer VR)
+#       + z_office_i                              KONTOR-KULTUR (eksogen, IV-kanalen)
+#       + delta_w · w_i                           ABILITY (endogen, biaskanalen)
+#
+# pmax(..., 1e-6) er en numerisk sikkerhet — hvis summen blir negativ
+# (sjelden, ved sterkt negativ z_office + lav ability), klippes hazarden
+# til et lite positivt tall. Slike personer blir i praksis "aldri behandlet".
+#
+# Overgangstidspunktet trekkes fra GEOMETRISK fordeling:
+#   t_event ~ rgeom(h) + 1L
+# Tolkning: hver måned er en uavhengig "myntkast" med suksess-sannsynlighet h.
+# rgeom returnerer antall feilet før første suksess; +1L flytter til
+# kalenderbasis (måned 1, 2, 3, ...).
+#
+# Sensurering ved 24 mnd: hvis t_event > max_months får personen d_vr = NA
+# (aldri behandlet i observasjonsvinduet) og P = 0. last_d styrer hvor mange
+# rader personen får i person-måned-datasettet videre.
+
+df_person3 <- df_person2 |>
+    mutate(
+        h       = pmax(h_base + 0.002 * female + 0.001 * (year_school - 10) +
+                       z_office + delta_w * w, 1e-6),
+        t_event = rgeom(n(), h) + 1L,
+        d_vr    = if_else(t_event <= max_months, t_event, NA_integer_),
+        P       = as.integer(!is.na(d_vr)),                              # personnivå-behandling
+        last_d  = if_else(is.na(d_vr), max_months, d_vr)                 # antall at-risk-mnd
     )
 
 
-# Slår sammen personer med kontor-kultur
-df_person2 <- df_person1 |> left_join( df_office, join_by(office_id))
-
-
-# Valgregel for VR: 
-# h: andel som får tiltaket VRX
-h_base   # base rate for h # base-hazard (kalibrert til ~27 % behandlet i 24 mnd)
-sigma_w  # spredning i ability (uobservert av forsker)
-sigma_z  # spredning i kontor-kultur
-delta_w  # w inn i hazard — høy w (ability gir større sannsynlighet for VR1) → mer VR1
-lambda_w # w inn i y     — høy w → høyere y (uavhengig av VR)
-beta_true # sann effekt av VR1 på y
-max_months # observasjonsvindu
-
-# rgeom( n = 50, 0.01) # density function.
-# Brukes i h. Alle har en ulik h (harzard-rate)
-
-# Legger til valg-regel (hazard-rate) for tildeling av tiltak (h)
-df_person3 <- df_person2 |> 
-    mutate( 
-        # h bestemt av female, year_schooling og evne. Men viktigst -- kultur på kontoret.
-        h       = pmax(h_base + 0.002 * female + 0.001 * (year_school - 10) + z_office + delta_w * w, 1e-6),
-        t_event = rgeom(n(), h) + 1L,
-        d_vr    = ifelse(t_event <= max_months, t_event, NA_integer_), # 
-        # Treatment
-        P       = as.integer(!is.na(d_vr)),
-        last_d  = if_else(is.na(d_vr), max_months, d_vr)
-)
-
-
-# (a) Sanity-blokk etter df_person3 (du har den i konsollen, men ikke i fila):
+# 3b. Sanity-blokk — bekreft at kalibreringen er fornuftig.
+# Forventet med dagens parametre:
+#   share_treated  ~ 0.27–0.32  (M&R-skala)
+#   share_clipped  ~ 0.15–0.20  (akseptabelt; klipte personer blir aldri behandlet)
+#   median_h       ~ 0.015      (sentrum av hazard-fordelingen)
 
 df_person3 |>
     summarise(
-    share_treated  = mean(P),
-    share_clipped  = mean(h <= 1e-6 + 1e-9),
-    median_h       = median(h)
-)
+        share_treated  = mean(P),
+        share_clipped  = mean(h <= 1e-6 + 1e-9),
+        median_h       = median(h)
+    )
 
-# Enkel figur som viser fordeling av tidspunktet får behandling (VR1) - teoretisk
+# Visuell sjekk av overgangs-tids-fordeling (filtrert for å unngå at de
+# klipte personene med t_event i millioner ødelegger x-aksen).
 df_person3 |>
-    filter( t_event < 100) |> 
-    ggplot(
-        aes( x = t_event)
-    ) +
+    filter(t_event < 100) |>
+    ggplot(aes(x = t_event)) +
     geom_histogram()
 
 
-# 2. Konstruksjon Z: Paneldatasettet, person* max mnd -----------------------------
+# =========================================================================
+# 4. INSTRUMENTKONSTRUKSJON — Ligning 2 → 3 → 4 → 5
+# =========================================================================
+# Her bygger vi φ_Si trinn for trinn etter M&R-oppskriften.
+# Ideen: vi observerer ikke z_office direkte, men kan ESTIMERE det ved å
+# se på hvilke kontor som "produserer" flere behandlinger enn x og varighet
+# tilsier — etter at vi har trukket fra det observerbare.
 
-# a) Lager full sekvens for hver id
+# 4a. PERSON-MÅNED-ekspansjon ---------------------------------------------
+#
+# Ligning 2 estimeres på person-måned-data: én rad per person × hver måned
+# personen er at risk. Vi ekspanderer hver person fra én rad til last_d
+# rader (= overgangs-måned hvis behandlet, ellers 24).
+#
+# Eksempel:
+#   Person A behandles i d=3:  3 rader, P = (0, 0, 1)
+#   Person B sensurert (last_d=24):  24 rader, P = (0, 0, ..., 0)
+#
+# .id = "d" gir en tellevariabel 1, 2, ..., last_d per person.
+# P_id = 1 kun i overgangs-måneden (krever D == 1 OG d == d_vr).
+
 df_pm <- df_person3 |>
-    # Gir alle sekvens på 24 (last_d), beholder variabelen last_d (remove = F) 
-    uncount( last_d, .id = "d", .remove = F) |> 
-    # Utfall VR
-    # d_vr: deltar på tiltak?
-    # Se ifelse-regel over: om t_event > max_months (24), da vr = t_event, hvis ikke NA 
+    uncount(last_d, .id = "d", .remove = FALSE) |>
     mutate(
-        P = ifelse( !is.na(d_vr) & d == d_vr, 1, 0)
+        P = if_else(!is.na(d_vr) & d == d_vr, 1L, 0L)
     )
 
-# b) LPM
-# Regresjonn P på varighet + x
+# 4b. LIGNING 2 — LPM-hazard på person-måned ------------------------------
+#
+# Vi regresserer hendelsesindikatoren P på varighetsdummyer factor(d) og
+# observerte kovariater. Residualene u_id inneholder DET SOM ER IGJEN
+# etter at varighet og x er trukket fra — dvs.:
+#
+#   u_id =  z_office   (kontor-kultur, signalet vi vil ha)
+#         + delta_w·w  (uobservert heterogenitet)
+#         + støy
+#
+# w er IKKE med i regresjonen — den er uobserverbar. Den havner derfor i
+# residualen. Det er nettopp dette jackknifet i ligning 5 skal kvitte oss
+# med via leave-one-out-aggregering.
+#
+# HVORFOR LPM og ikke logit?
+#   (a) Lineær form gjør Frisch-Waugh-stegene algebraisk transparente
+#   (b) M&R argumenterer at funksjonell form ikke skal drive resultatet
+#   (c) Jackknife-formelen i ligning 5 har eksakt analytisk form på OLS
+#
+# HVORFOR factor(d) (23 dummyer) i stedet for d (1 koeffisient)?
+#   factor(d) lar baseline-hazarden være helt fri i form — vi antar ingen
+#   spesifikk tidsstruktur. Bruker du `d` direkte antar du implisitt
+#   konstant lineær endring per måned, som er en sterk antagelse.
 
-# OLS på person-mnd-data.
-# LMP for hazard. 
-# Modellerer LMP per mnd. linear. 
-# Linear for å få Frisch-Waugh-stegene
+model_eq_2 <- lm(P ~ factor(d) + female + year_school, data = df_pm)
 
-# u_id: fratrukket x, står igjen med u:
-    # 1. kontor-kultur. -- som er det vi vil sile ut!
-    # 2. uobservert heterogeitet n 
-    # 3. rent støy
+# Sjekk koeffisientene på female og year_school — de skal ligne sann DGP
+# (~0.002 og ~0.001 i hazarden, men her som koeffisient i LPM med fri
+# baseline).
+summary(model_eq_2)
 
-# Tar ikke med w, siden det er uobserverbar
-summary(
-    model_eq_2 <- lm( data = df_pm, P ~ factor(d) + female + year_school)
-    )
-# Bruker factor(d) -- gir baseline-haztad fri i form.
-
-# c) Konstrurer likning 3.
-df_pm1 <- df_pm |> 
+# Beregn residualene u_id manuelt for å gjøre logikken eksplisitt
+# (resid(model_eq_2) gir samme tall).
+df_pm1 <- df_pm |>
     mutate(
-        # Residual for hver enkel
-        p_pred = predict(model_eq_2),  
-        u = P - p_pred
+        p_pred = predict(model_eq_2),
+        u      = P - p_pred
     )
 
-# Sjekk av verdi
-# mean(df_pm1$u)      # nært null
-# sd(df_pm1$u)        # liten
-# summary(model_eq_2) # Skal være veldig liten
 
-# Likning 3-------------------------------
-# i: individ
-# j: kontor
-# s: tilstand (VR1, VR2 osv)
-# d: Risiko mnd for overgang til VRX
+# 4c. LIGNING 3 — sum residualer per person → u_Si ------------------------
+#
+# Vi kollapser fra person-måned til personnivå ved å summere u_id over
+# alle måneder personen er at risk:
+#
+#   u_Si = Σ_d u_Sid
+#
+# Tolkning: u_Si er personens samlede "uforklarte overgangs-tilbøyelighet"
+# — det som ikke fanges av varighet eller x. Per definisjon av OLS er
+# summen over alle personer eksakt null.
+#
+# HVORFOR SUMMERE I STEDET FOR GJENNOMSNITT?
+# Personer som er at risk lenge bidrar med mer signal i summen. M&R bruker
+# sum slik at kontorets totale "residual-masse" blir riktig vektet av
+# eksponering — ikke per måned per person.
+#
+# Indekser i M&R-notasjon:
+#   i = individ, j = kontor, S = tilstand (her kun VR1), d = risikomåned
+#   u_Sid = residual på person-måned-nivå
+#   u_Si  = u_Sij (j er implisitt via at i tilhører ett kontor)
 
-# sum u(s,i,j): Kolapser en observasjon per person.
-# Dette er konstruksjonen av instrumentet til personene.
-df_resid <- df_pm1 |> 
-    # Sammenpresser til en obs. per person og kontor.
-    summarise(
-        u_sji = sum(u), .by = c("id", "office_id")
-    ) 
+df_resid <- df_pm1 |>
+    summarise(u_sji = sum(u), .by = c(id, office_id))
 
-nrow(df_resid)                    # = N (= 50 i ditt oppsett)
-mean(df_resid$u_sji)              # ~ 0 (residual-egenskap)
+# Sanity:
+nrow(df_resid)                    # = N
+mean(df_resid$u_sji)              # ≈ 0 (OLS-residual-egenskap)
 sd(df_resid$u_sji)                # gir et inntrykk av spredningen
-sum(df_resid$u_sji) |> round(6)   # ~ 0 — eksakt i en LPM uten vekter
+sum(df_resid$u_sji) |> round(6)   # = 0 eksakt i LPM uten vekter
 
 
-# Likning 4. Gjøre om til et snitt per kontor------------------
+# 4d. LIGNING 4 — naïv kontor-snitt φ_Sj ----------------------------------
+#
+#   φ_Sj = (1/N_j) · Σ_{i ∈ j} u_Si
+#
+# Dette er det "naïve" estimatet av kontor-kulturen: bare snittet av u_Si
+# innad i kontoret. Det er PROBLEMATISK som instrument fordi personen
+# selv inngår i snittet (med vekt 1/N_j), og personens egen u_Si inneholder
+# personens egen w — som er nettopp det som gjør P endogen.
+#
+# Mekanisk: cov(φ_naïv_i, w_i) ≠ 0 fordi w_i bidrar til u_Si, som bidrar
+# til snittet med vekt 1/N_j. Biasen avtar som 1/N_j men forsvinner aldri.
 
-df_culture <- df_resid |> 
-    summarise(
-        phi_sj = mean(u_sji), .by = "office_id"
-    )
+df_culture <- df_resid |>
+    summarise(phi_sj = mean(u_sji), .by = office_id)
 
 
-# Likning 5. Jackknife leav out---------------------------------
+# 4e. LIGNING 5 — JACKKNIFE-versjonen (leave-one-out) ---------------------
+#
+#   φ_Si = (1/(N_j − 1)) · Σ_{i' ≠ i} u_Si'
+#
+# Her ekskluderer vi PERSONEN SELV fra kontor-snittet. Da inneholder φ_Si
+# bare ANDRES u_Si — og siden andres w er uavhengig av min egen w
+# (tilfeldig kontor-tildeling), er φ_Si eksogent med hensyn til min egen w.
+#
+# Algebraisk trick:
+#   N_j · φ_naïv  =  Σ_i u_Si               (sum over alle)
+#   N_j · φ_naïv − u_Si  =  Σ_{i' ≠ i} u_Si'   (sum unntatt selv)
+#   ⇒ φ_jack_i = (N_j · φ_naïv − u_Si) / (N_j − 1)
+#
+# Det er det samme som å definere φ_jack direkte som leave-one-out, men
+# beregningsmessig billigere — vi gjenbruker det vi allerede har regnet ut.
 
-df_phi <- df_resid |> 
-    left_join(
-        df_culture, join_by(office_id)
-    ) |> 
-    mutate(
-        N_j = n_distinct(id), .by = "office_id"
-    ) |> 
-    mutate(
-        phi_si_j = (N_j*phi_sj - u_sji)/(N_j -1)
-    )
+df_phi <- df_resid |>
+    left_join(df_culture, join_by(office_id)) |>
+    mutate(N_j = n_distinct(id), .by = office_id) |>
+    mutate(phi_si_j = (N_j * phi_sj - u_sji) / (N_j - 1))
 
-# Fungerer instrumentet som det skal?
-# (b) Diagnose etter df_phi — viser at instrumentet faktisk fanger kontorkultur og er renset for w:
+
+# 4f. DIAGNOSE — fungerer instrumentet? -----------------------------------
+#
+# To egenskaper må gjelde for at φ skal være et gyldig instrument:
+#
+#   RELEVANS:    cor(φ, z_office) > 0   — φ må faktisk fange kontor-kulturen
+#   EKSOGENITET: cor(φ, w) ≈ 0          — φ må være renset for personens w
+#
+# Forventning med dagens kalibrering og N = 1500:
+#   cor_naive_z ≈ 0.93   (sterk relevans — naïv fanger z_office godt)
+#   cor_jack_z  ≈ 0.92   (jackknife litt under, mister noe presisjon)
+#   cor_naive_w ≈ 0.0    (ved store N er 1/N_j-biasen forsvunnet)
+#   cor_jack_w  ≈ 0.0    (jackknife eksakt eksogen)
+#
+# Ved små N_j (f.eks. 5) ville naïv vise klart positiv cor med w, mens
+# jack ble ved 0 — det er den klassiske demonstrasjonen av 1/N_j-bias.
 
 df_phi |>
     left_join(df_person3 |> select(id, w, z_office), join_by(id)) |>
     summarise(
-        cor_naive_z = cor(phi_sj,   z_office),    # ~ 0.9 — relevans
-        cor_jack_z  = cor(phi_si_j, z_office),    # ~ 0.9
-        cor_naive_w = cor(phi_sj,   w),           # ~ 0 — eksogenitet
-        cor_jack_w  = cor(phi_si_j, w)            # ~ 0
+        cor_naive_z = cor(phi_sj,   z_office),
+        cor_jack_z  = cor(phi_si_j, z_office),
+        cor_naive_w = cor(phi_sj,   w),
+        cor_jack_w  = cor(phi_si_j, w)
     )
 
 
 
-## Tilbake til utfallslikning-------------------------------------------
+# =========================================================================
+# 5. UTFALLSLIKNINGEN OG ESTIMERING
+# =========================================================================
+#
+# Vi forhøyer beta_true til 50 for klarere visuell forskjell mellom OLS og
+# IV. Med lambda_w = 50 og beta_true = 50 forventer vi:
+#   sann β  = 50
+#   OLS uten w  ≈ 71  (overestimat — bias +21 fra omitted w)
+#   IV          ≈ 50  (gjenfinner sannheten)
 
-beta_true <- 50 # Klar synlig effekt. eks.2 verdi = 10, liten effekt, 0 = nulleffekt
+beta_true <- 50    # NB: overskriver parameter-definisjonen på linje 73 — bevisst
 
-# Analyse-klar fil:
-# Konstruerer utfallet
-df_person4 <- df_person3 |> 
+# 5a. Konstruer y, og koble på instrumentet -------------------------------
+#
+# Utfallslikningen i DGP-en:
+#   y_i = 250 + β·P_i + (−25)·female_i + 15·(year_school_i − 10)
+#         + λ_w·w_i + ε_i,    ε ~ N(0, 30)
+#
+# w_i går inn med koeffisient λ_w = 50. Det er denne kanalen — uobservert
+# for forskeren — som skaper OLS-biasen.
+
+df_person4 <- df_person3 |>
     mutate(
-        y = 250 + beta_true*P - 25*female + 15*(year_school-10) + lambda_w*w + rnorm(n(), 0,30)
-    ) |> # Legger til instrumentet
-    left_join( df_phi, join_by(id, office_id))
+        y = 250 + beta_true * P - 25 * female + 15 * (year_school - 10) +
+            lambda_w * w + rnorm(n(), 0, 30)
+    ) |>
+    left_join(df_phi, join_by(id, office_id))
 
-# Modellene
-model_true      <- lm( data = df_person4, y ~ P + female + year_school + w)
-model_observert <- lm( data = df_person4, y ~ P + female + year_school)
 
-# IV-steg
+# 5b. FIRE MODELLER — hva de hver for seg viser ---------------------------
+#
+# (1) model_true       y ~ P + x + w
+#     "Hva vi ville sett om w var observerbar." Fasit-modellen. β̂ ≈ 50.
+#     Ikke realistisk i ekte data (w er per def uobservert), men nyttig
+#     som baseline.
+#
+# (2) model_observert  y ~ P + x
+#     "Hva forskeren faktisk ser." Standard OLS, omitting w.
+#     β̂ er BIASED. Hvor mye? = λ_w · cov(P, w | x) / var(P | x)
+#     Med våre parametre ≈ +21 ⇒ β̂ ≈ 71. Dette er motiveringen for IV.
+#
+# (3) model_iv          y ~ p_hat + x   (manuelt 2SLS)
+#     Vi instrumenterer P med φ_jack i førstesteget, og bruker den
+#     PREDIKERTE P̂ i andresteget. β̂ ≈ 50 — sann effekt gjenfunnet.
+#     ADVARSEL: SE er for små (lm tar ikke høyde for førstesteg-usikkerhet).
+#
+# (4) model_rf          y ~ phi_si_j + x   (reduced form)
+#     Den DIREKTE effekten av kontor-praksis på y, uten å gå via P.
+#     Forventet å være signifikant — det er en sanity-sjekk (M&R tabell 3).
 
-# steg 1 
-model_first_stage <- lm( data = df_person4, P ~ female + year_school + phi_si_j )
+model_true      <- lm(y ~ P + female + year_school + w, data = df_person4)
+model_observert <- lm(y ~ P + female + year_school,     data = df_person4)
 
-df_person4$p_hat <- predict(model_first_stage)
+# IV-steg 1: predikér P fra instrument + kontroller
+model_first_stage <- lm(P ~ female + year_school + phi_si_j, data = df_person4)
+df_person4$p_hat  <- predict(model_first_stage)
 
-# Stage 2 IV
-model_iv <- lm( data = df_person4, y ~ female + year_school + p_hat)
+# IV-steg 2: y på predikert P + samme kontroller
+model_iv <- lm(y ~ female + year_school + p_hat, data = df_person4)
 
-# Reduce form equation
-model_rf <- lm( data = df_person4, y ~ female + year_school + phi_si_j)
+# Reduced form: y direkte på instrumentet
+model_rf <- lm(y ~ female + year_school + phi_si_j, data = df_person4)
 
-# Tolkning (1) viser sann modell. (2) endogen. (3) IV-resultat
-# IV: justerer ned effekt fra 61 i endogen likning til 45
-stargazer::stargazer( list(model_true, model_observert, model_iv, model_rf), type = "text")
 
-# Innebygget pakke.
+# 5c. Sammenligning ------------------------------------------------------
+#
+# Forventet (sann β = 50):
+#   model_true       β̂ ≈ 50  (baseline)
+#   model_observert  β̂ ≈ 71  (OLS biased oppover via lambda_w · cov(P,w))
+#   model_iv         β̂ ≈ 50  (IV gjenfinner sann effekt)
+#   model_rf         koeff på phi ≠ 0  (sterk reduced form)
+#
+# Hvis dette mønsteret stemmer i din kjøring, er hele kjeden verifisert:
+# ligning 2 → 3 → 4 → 5 produserer et eksogent instrument med relevans,
+# og 2SLS gir konsistent β.
+
+stargazer::stargazer(
+    list(model_true, model_observert, model_iv, model_rf),
+    type          = "text",
+    column.labels = c("Sann (m/w)", "OLS (u/w)", "IV (2SLS)", "Reduced form"),
+    keep          = c("P", "p_hat", "phi_si_j", "female", "year_school", "w"),
+    digits        = 2
+)
+
+
+# 5d. KORREKTE STANDARDFEIL via ivreg ------------------------------------
+#
+# Manuelt 2SLS gir riktig punktestimat for β, men FOR SMÅ standardfeil
+# i andresteget. Grunnen: lm() tar ikke høyde for at p_hat selv er
+# estimert (med usikkerhet) i førstesteget. ivreg() gjør den korreksjonen
+# automatisk og gir også weak-instrument-tester gratis.
+
 library(ivreg)
 
 iv_correct <- ivreg(
-    y ~ P + female + year_school | phi_si_j + female + year_school, 
-    data = df_person4)
+    y ~ P + female + year_school |              # ligning 6 (andresteg)
+        phi_si_j + female + year_school,        # instrumenter for førstesteg
+    data = df_person4
+)
 
-# Videre arbeid: 
+summary(iv_correct, diagnostics = TRUE)
 
+# Diagnostiske tester man bør se på:
+#   Weak instruments     — F-stat fra førstesteget; bør være >> 10
+#   Wu-Hausman           — er endogenitet stort nok til at IV trengs?
+#   Sargan               — overidentifiseringstest (her én-til-én, ikke relevant)
+
+
+# =========================================================================
+# 6. UTVIDELSER — hva som gjør eksempelet mer realistisk
+# =========================================================================
+# Dette skriptet er BASISVERSJONEN. Tre naturlige utvidelses-akser:
+#
+# A) FLERE VR-TILTAK (multi-endogen IV)
+# -------------------------------------
+# I dag har vi ett tiltak (VR1). M&R har fem: VR1–VR4 og PDI.
+#
+# Endring av DGP:
+#   - Hvert kontor får én z_office_S per behandling S (matrise K × 5)
+#   - Personene konkurrerer mellom behandlinger (competing risks) — typisk
+#     ved at hver person trekker hazard for hver S og velger den som
+#     "treffer" først, eller modelleres som multinomial logit
+#   - Persondatasettet får én D_S per behandling
+#
+# Endring av instrumentkonstruksjon:
+#   - Kjør ligning 2 én gang per behandling S
+#   - Få fire (eller fem) sett av u_Sid → u_Si → φ_Sj → φ_Si
+#   - Du ender med en MATRISE av instrumenter (én kolonne per S)
+#
+# Endring av estimering:
+#   - Førstesteg blir fire (eller fem) parallelle LM: hver D_S regreseres
+#     på alle fire φ-ene + x. Det fanger at instrumentene henger sammen
+#     (et "VR1-kontor" kan også være et "PDI-kontor")
+#   - Andresteg: y ~ D̂_VR1 + D̂_VR2 + ... + x   (+ τ·φ_PDI hvis PDI er med)
+#
+# Referanse: `scripts/R/arv/2026-04-10_iv_fire_endogene.R` har en
+# pedagogisk versjon av dette med fire endogene.
+#
+# B) FLERE KOVARIATER (mer realistisk x)
+# --------------------------------------
+# I dag har vi female + year_school. Realistisk x i M&R inkluderer:
+#
+#   - alder (ofte som 5-års-kategorier)
+#   - innvandrerstatus
+#   - tidligere inntekt (forhåndsinntekt 2 år før TDI)
+#   - regional ledighetsrate (konjunkturkontroll)
+#   - sivilstand, barn, helseopplysninger
+#   - inngangsmåned-dummyer (sesongkontroll)
+#
+# Implementering:
+#   - Trekk hver kovariat i df_person med passende fordeling
+#   - Legg dem inn både i hazard (DGP) og i ligning 2 (estimering) og y
+#   - Pass på at antall kontrollvariabler er konsistent overalt
+#
+# Effekt:
+#   - Mer realistisk OLS-bias (avhenger av hvilke x som korrelerer med w)
+#   - Bedre identifikasjon hvis x fanger noe av w-kanalen
+#   - Pedagogisk poeng: jo flere observerte kovariater, desto mindre er
+#     gapet mellom OLS og IV — men det forsvinner ikke helt fordi
+#     uobservert ability gjenstår
+#
+# C) FLERE OBSERVASJONER OG BEDRE INFERENS
+# -----------------------------------------
+# I dag har vi N = 1500 personer på K = 50 kontor (~30 per kontor).
+# M&R har N = 345 000 og K = 152.
+#
+# Hva som endrer seg ved oppskalering:
+#   - Lavere standardfeil — synlig dramatisk forskjell mellom OLS og IV
+#   - Naïv-vs-jack-forskjellen blir mindre (1/N_j → 0)
+#   - Førstesteg-F blir høyere (sterkere instrument-relevans)
+#
+# Inferens-utvidelser (uavhengig av N):
+#   - KLYNGESTANDARDFEIL på kontor-nivå:
+#       library(fixest)
+#       feols(y ~ P + female + year_school | phi_si_j, data = ...,
+#             vcov = "cluster", cluster = ~office_id)
+#     M&R klynger på behandlingsmiljø × år. Vår enkleste analog er bare
+#     office_id.
+#   - WILD CLUSTER BOOTSTRAP for små antall klynger (få kontor):
+#       library(fwildclusterboot)
+#
+# D) PEDAGOGISKE TILLEGG (ikke realisme, men forklaring)
+# -------------------------------------------------------
+#   - Monte Carlo over flere seed for å vise at IV er konsistent
+#     (ikke bare riktig i én run — riktig i forventning)
+#   - Sammenligning OLS / IV / "oracle" (= model_true) for flere
+#     verdier av lambda_w — viser bias-skala empirisk
+#   - Plotte phi_si_j mot z_office for å vise relevansen visuelt
+#   - Plotte residualer u_Si mot w for å vise korrelasjonen før jackknife
+#
+# REKKEFØLGE JEG VILLE GJORT DEM I:
+#   1. Klyngestandardfeil (én linje endring — gir korrekt inferens nå)
+#   2. Utvide til to tiltak (VR1 + VR2) som bro til full multi-endogen
+#   3. Berike x med 2–3 nye kovariater (alder, regional ledighet)
+#   4. Eventuelt full M&R med PDI som τ·φ_PDI-regressor
